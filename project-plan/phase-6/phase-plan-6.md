@@ -30,17 +30,24 @@
 
 ## 6-3. 단계별 작업 (Task 인덱스)
 
-| # | 작업 | 상태 | 세부 문서 | 예상 시간 |
-|:-:|---|:-:|---|---|
-| 1 | GitHub remote init + 초기 push | ⏳ | [`task-1-github-init.md`](./task-1-github-init.md) | 30분 |
-| 2 | `.github/workflows/figma-pipeline.yml` 작성 | ⏳ | [`task-2-actions-workflow.md`](./task-2-actions-workflow.md) | 1시간 |
-| 3 | `scripts/pipeline/post-run-actions.ts` 라우팅 스크립트 | ⏳ | [`task-3-post-run-actions.md`](./task-3-post-run-actions.md) | 2시간 |
-| 4 | CODEOWNERS + PR/Issue 거버넌스 룰 | ⏳ | [`task-4-codeowners-governance.md`](./task-4-codeowners-governance.md) | 30분 |
-| 5 | Cloudflare Worker Figma webhook 프록시 | ⏳ | [`task-5-webhook-proxy.md`](./task-5-webhook-proxy.md) | 1~2시간 |
-| 6 | Resend 이메일 통합 | ⏳ | [`task-6-email-resend.md`](./task-6-email-resend.md) | 1시간 |
-| 7 | `promote-dev.ts` 스모크 키 버그 수정 (Codex 발견) | ⏳ | [`task-7-bugfixes.md`](./task-7-bugfixes.md) | 30분 |
+| # | 작업 | 상태 | 세부 문서 | 예상 시간 | 실 소요 |
+|:-:|---|:-:|---|---|---|
+| 1 | GitHub remote init + 초기 push | ✅ | [`task-1-github-init.md`](./task-1-github-init.md) | 30분 | 30분 |
+| 2 | `.github/workflows/figma-pipeline.yml` 작성 | ✅ | [`task-2-actions-workflow.md`](./task-2-actions-workflow.md) | 1시간 | 45분 |
+| 3 | `scripts/pipeline/post-run-actions.ts` 라우팅 스크립트 | ⏳ | [`task-3-post-run-actions.md`](./task-3-post-run-actions.md) | 2시간 | — |
+| 4 | CODEOWNERS + PR/Issue 거버넌스 룰 | ⏳ | [`task-4-codeowners-governance.md`](./task-4-codeowners-governance.md) | 30분 | — |
+| 5 | Cloudflare Worker Figma webhook 프록시 | ⏳ | [`task-5-webhook-proxy.md`](./task-5-webhook-proxy.md) | 1~2시간 | — |
+| 6 | Resend 이메일 통합 | ⏳ | [`task-6-email-resend.md`](./task-6-email-resend.md) | 1시간 | — |
+| 7 | `promote-dev.ts` 스모크 키 버그 수정 (Codex 발견) | ⏳ | [`task-7-bugfixes.md`](./task-7-bugfixes.md) | 30분 | — |
 
 **의존성**: 1 → 2 → 3 → 4 (병렬 가능: 5, 6, 7은 2 완료 후 순서 무관)
+
+### 진행 로그
+- 2026-05-20 16:38 KST — task-1 완료. repo `jhlee9815/uno-home` (private) 생성, FIGMA_TOKEN secret 등록, branch protection은 task-4로 보류.
+- 2026-05-20 16:47 KST — task-2 완료. `.github/workflows/figma-pipeline.yml` 동작 확인 (run `26148882072`, 37s).
+  - 발견 이슈 1: CI에 baseline 없음 → `.automation/baseline/` git 추적으로 전환
+  - 발견 이슈 2: ANSI 색상 escape가 grep에 잡혀 multiline `change_count` → `sed`로 ANSI strip + `PIPESTATUS[0]`로 exit 캡처
+  - 부수 warning: Node.js 20 actions 2026-06-02부터 deprecated → task-7에서 Node 22로 업그레이드 함께 처리
 
 ## 6-4. Extraction-Friendly 설계 결정 (Phase 7 비용 선납)
 

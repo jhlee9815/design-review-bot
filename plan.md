@@ -1,7 +1,7 @@
 # UNO HOME × Apple-inspired Design System 실험 계획
 
 > 작성일: 2026-05-20
-> 최신 갱신: 2026-05-20 14:50 KST (Codex 검증 완료, Phase 6/7 신규 추가)
+> 최신 갱신: 2026-05-20 16:47 KST (Phase 6 task-1, task-2 완료)
 > 프로젝트 위치: `/Users/juhee/Work/Test/design-test/uno-home`
 > 외부 디자인 시스템 입력: `/Users/juhee/Work/Test/awesome-design-md/design-md/apple`
 
@@ -58,17 +58,22 @@
 
 ## 4. Phase 6 작업 인덱스 (지금 진행할 것)
 
-| # | 작업 | 세부 |
-|:-:|---|---|
-| 1 | GitHub Remote init + 초기 push | [`task-1-github-init.md`](./project-plan/phase-6/task-1-github-init.md) |
-| 2 | `.github/workflows/figma-pipeline.yml` 작성 | [`task-2-actions-workflow.md`](./project-plan/phase-6/task-2-actions-workflow.md) |
-| 3 | `post-run-actions.ts` 라우팅 스크립트 (PR/Issue/Slack/Email) | [`task-3-post-run-actions.md`](./project-plan/phase-6/task-3-post-run-actions.md) |
-| 4 | CODEOWNERS + PR/Issue 거버넌스 | [`task-4-codeowners-governance.md`](./project-plan/phase-6/task-4-codeowners-governance.md) |
-| 5 | Cloudflare Worker Figma webhook 프록시 | [`task-5-webhook-proxy.md`](./project-plan/phase-6/task-5-webhook-proxy.md) |
-| 6 | Resend 이메일 통합 | [`task-6-email-resend.md`](./project-plan/phase-6/task-6-email-resend.md) |
-| 7 | Codex 발견 버그 수정 + env var 추출 | [`task-7-bugfixes.md`](./project-plan/phase-6/task-7-bugfixes.md) |
+| # | 작업 | 상태 | 세부 |
+|:-:|---|:-:|---|
+| 1 | GitHub Remote init + 초기 push | ✅ | [`task-1-github-init.md`](./project-plan/phase-6/task-1-github-init.md) |
+| 2 | `.github/workflows/figma-pipeline.yml` 작성 | ✅ | [`task-2-actions-workflow.md`](./project-plan/phase-6/task-2-actions-workflow.md) |
+| 3 | `post-run-actions.ts` 라우팅 스크립트 (PR/Issue/Slack/Email) | ⏳ | [`task-3-post-run-actions.md`](./project-plan/phase-6/task-3-post-run-actions.md) |
+| 4 | CODEOWNERS + PR/Issue 거버넌스 | ⏳ | [`task-4-codeowners-governance.md`](./project-plan/phase-6/task-4-codeowners-governance.md) |
+| 5 | Cloudflare Worker Figma webhook 프록시 | ⏳ | [`task-5-webhook-proxy.md`](./project-plan/phase-6/task-5-webhook-proxy.md) |
+| 6 | Resend 이메일 통합 | ⏳ | [`task-6-email-resend.md`](./project-plan/phase-6/task-6-email-resend.md) |
+| 7 | Codex 발견 버그 수정 + env var 추출 + Node 24 강제 | ⏳ | [`task-7-bugfixes.md`](./project-plan/phase-6/task-7-bugfixes.md) |
 
-총 예상: ~6.5~8시간 (2~3일 분량).
+총 예상: ~6.5~8시간 (2~3일 분량). 진행 1.25시간 / 잔여 ~5.5시간.
+
+### 활성 GitHub 리소스
+- Repo: https://github.com/jhlee9815/uno-home (private)
+- Latest successful run: https://github.com/jhlee9815/uno-home/actions/runs/26148882072
+- Secrets: `FIGMA_TOKEN`
 
 ---
 

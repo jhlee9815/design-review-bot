@@ -135,3 +135,23 @@ FIGMA_FILE_KEY=9cevQvPHlQ5vZv5Pz3QaLL FIGMA_VERIFY_PORT=4175 npm run figma:run
 
 이 task의 5개 수정 = Codex의 9가지 차단점 중 ①, ③, ⑤, ⑦ 해소.
 나머지 ②(매핑), ④(마커), ⑥(viewport는 ⑤로 같이), ⑧(plist 안 씀), ⑨(package.json)은 Phase 7로.
+
+## 6-7-F. (task-2 작업 중 발견) GitHub Actions Node 20 deprecation
+
+**증상**: `actions/checkout@v4`, `actions/setup-node@v4`, `actions/upload-artifact@v4` 가 Node.js 20 기반으로 동작. 2026-06-02부터 GitHub이 Node 24로 강제 전환 예정. 2026-09-16에 Node 20 제거.
+
+**대응 옵션**:
+- 즉시 fix (권장): action 버전을 최신으로 — `@v4` 그대로 두되 GitHub이 자동으로 Node 24 빌드를 publish하면 자동 적용됨. 별도 변경 불필요. (GitHub blog 2025-09-19 안내)
+- 보수적: workflow에 `FORCE_JAVASCRIPT_ACTIONS_TO_NODE24=true` env 추가 — 강제 Node 24 활성화
+- 최소: 이번 Phase 6 동안은 warning만, June 이후 동작 확인 후 패치
+
+이 task-7에서는 `FORCE_JAVASCRIPT_ACTIONS_TO_NODE24=true`를 workflow `env`에 추가해 미리 검증.
+
+```yaml
+# .github/workflows/figma-pipeline.yml의 job env에 추가
+env:
+  FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: 'true'
+  # ... 기존 env vars
+```
+
+**검증**: workflow 재실행 시 deprecation warning 사라지고 Node 24로 동작.
