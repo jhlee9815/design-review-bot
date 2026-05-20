@@ -24,6 +24,9 @@ import { EnterPasscodeScreen } from './screens/EnterPasscodeScreen'
 import { ChooseHubScreen } from './screens/ChooseHubScreen'
 import { HomeHubToastScreen } from './screens/HomeHubToastScreen'
 import { AppleDemoScreen } from './screens/AppleDemoScreen'
+import { PesseHomeScreen } from './screens/PesseHomeScreen'
+import { PesseCardsScreen } from './screens/PesseCardsScreen'
+import { PesseSendScreen } from './screens/PesseSendScreen'
 
 function Section({ title }: { title: string }) {
   return (
@@ -390,6 +393,16 @@ export default function App() {
         overflow: 'hidden',
       }}>
         <AppleDemoScreen />
+      </div>
+
+      <Divider />
+
+      {/* ── Pesse Apple-inspired fintech demo (3 screens) ── */}
+      <Section title="Pesse — Apple-inspired Fintech Demo" />
+      <div style={{ display: 'flex', gap: '32px', flexWrap: 'wrap', background: 'var(--apple-color-light-gray)', padding: '32px', borderRadius: '24px' }}>
+        <PesseHomeScreen />
+        <PesseCardsScreen />
+        <PesseSendScreen />
       </div>
 
     </div>
