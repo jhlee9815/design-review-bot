@@ -22,10 +22,20 @@ const REPORTS_DIR = resolve(REPO_ROOT, '.automation/reports');
 const SNAPSHOTS_DIR = resolve(REPO_ROOT, '.automation/snapshots');
 const BASELINE_DIR = resolve(REPO_ROOT, '.automation/baseline');
 const BASELINE_SCREENSHOTS_DIR = resolve(BASELINE_DIR, 'screenshots');
-const PREVIEW_PORT = 4174;
-const SMOKE_KEYS = ['home', 'family'];
+const PREVIEW_PORT = envNumber('FIGMA_PROMOTE_PORT', 4174);
+const SMOKE_KEYS = (process.env.FIGMA_SMOKE_KEYS?.trim() || 'pesse_home,pesse_cards,pesse_send')
+  .split(',')
+  .map(key => key.trim())
+  .filter(Boolean);
 
 const logger = createLogger('promote-dev');
+
+function envNumber(name: string, fallback: number): number {
+  const raw = process.env[name]?.trim();
+  if (!raw) return fallback;
+  const parsed = Number(raw);
+  return Number.isFinite(parsed) && parsed > 0 ? parsed : fallback;
+}
 
 // ------------------------------------------------------------------ helpers
 
@@ -373,7 +383,7 @@ async function main(): Promise<void> {
       snapshotBaseline: null,
       screenshotBaseline: null,
       promotedAt,
-      failures: ['Smoke test: one or more smoke targets (home, family) failed to capture'],
+      failures: [`Smoke test: one or more smoke targets (${SMOKE_KEYS.join(', ')}) failed to capture`],
       smokeRows,
       screenshotCount: 0,
     });

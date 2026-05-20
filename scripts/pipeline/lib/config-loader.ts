@@ -10,11 +10,12 @@ export class ConfigError extends Error {
   }
 }
 
-// config/ directory (uno-home/config/)
-const CONFIG_DIR = resolve(
-  dirname(fileURLToPath(import.meta.url)),
-  '../../../config'
-);
+// config/ directory (uno-home/config/ by default).
+// Phase 6 extraction-friendly override: downstream repos can point the
+// pipeline at their own config directory without editing source files.
+const CONFIG_DIR = process.env.FIGMA_CONFIG_DIR
+  ? resolve(process.env.FIGMA_CONFIG_DIR)
+  : resolve(dirname(fileURLToPath(import.meta.url)), '../../../config');
 
 export interface FigmaConfig {
   figma: {
@@ -89,7 +90,13 @@ export function loadFigmaConfig(): FigmaConfig {
     throw new ConfigError('figma.yaml: automation.stages must be a non-empty array');
   }
 
-  return parsed as FigmaConfig;
+  const config = parsed as FigmaConfig;
+  const fileKeyOverride = process.env.FIGMA_FILE_KEY?.trim();
+  if (fileKeyOverride) {
+    config.figma.fileKey = fileKeyOverride;
+  }
+
+  return config;
 }
 
 export function loadFigmaMapping(): FigmaMapping {

@@ -1,6 +1,7 @@
 # Task 6-7 — Bug Fixes (Codex 발견)
 
 > **목표**: Codex consult 시 발견된 코드 결함 수정 + extraction-friendly env var 도입
+> **상태**: ✅ 완료 — 2026-05-20 16:58 KST
 > **예상 시간**: 30분
 > **선행**: 없음
 > **블록 해제**: 없음
@@ -155,3 +156,41 @@ env:
 ```
 
 **검증**: workflow 재실행 시 deprecation warning 사라지고 Node 24로 동작.
+
+## 완료 기록 — 2026-05-20 16:58 KST
+
+Codex가 Claude task-3 중단 상태를 보존한 채 task-7 범위만 분리해 완료했다. task-7 변경은 `package.json`, `package-lock.json`, `scripts/pipeline/post-run-actions.ts`에 의존하지 않는다. 이후 task-3 dry-run 안전성 보강은 `task-3-post-run-actions.md`에 별도로 기록했다.
+
+변경 파일:
+
+- `scripts/pipeline/promote-dev.ts`
+  - `FIGMA_SMOKE_KEYS` env override 추가. 기본값은 현재 Pesse mapping과 맞는 `pesse_home,pesse_cards,pesse_send`.
+  - `FIGMA_PROMOTE_PORT` env override 추가. 기본값은 기존 `4174`.
+  - 실패 메시지의 smoke target 이름을 env 기반으로 출력하도록 변경.
+- `scripts/pipeline/verify.ts`
+  - `FIGMA_VERIFY_PORT`, `FIGMA_VERIFY_VIEWPORT_WIDTH`, `FIGMA_VERIFY_VIEWPORT_HEIGHT` 추가.
+  - `FIGMA_VERIFY_BUILD_CMD`, `FIGMA_VERIFY_LINT_CMD` 추가. 기본값은 기존 `npm run build`, `npm run lint`.
+  - build/lint 실행은 shell command로 처리해 Phase 7 CLI에서 custom command를 전달할 수 있게 함.
+- `scripts/pipeline/lib/config-loader.ts`
+  - `FIGMA_CONFIG_DIR` env override 추가.
+  - `FIGMA_FILE_KEY` env override 추가. yaml 값보다 env가 우선.
+- `.github/workflows/figma-pipeline.yml`
+  - Node 24 사전 검증용 `FORCE_JAVASCRIPT_ACTIONS_TO_NODE24=true` 추가.
+  - verify/promote 관련 env vars를 GitHub vars에서 주입 가능하도록 추가.
+
+검증:
+
+```bash
+npm run build
+npm run lint
+npm run figma:preflight
+FIGMA_FILE_KEY=9cevQvPHlQ5vZv5Pz3QaLL FIGMA_CONFIG_DIR=/Users/juhee/Work/Test/design-test/uno-home/config npm run figma:preflight
+npx tsc --noEmit
+```
+
+결과: 모두 PASS. 첫 env override preflight는 sandbox의 `tsx` IPC pipe 권한 문제로 한 번 실패했으나, 동일 명령을 sandbox 밖에서 재실행해 PASS 확인했다.
+
+남은 관련 작업:
+
+- task-3이 완료되면 GitHub Actions에서 `post-run-actions.ts`까지 포함한 전체 workflow 재실행 필요.
+- task-7 변경은 아직 커밋하지 않았다. 사용자 승인 또는 Claude task-3 완료 후 함께 커밋한다.

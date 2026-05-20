@@ -26,9 +26,20 @@ const REPORTS_DIR = resolve(REPO_ROOT, '.automation/reports');
 const VISUAL_BASELINE_DIR = resolve(REPO_ROOT, '.automation/baseline/screenshots');
 const VISUAL_PIXEL_THRESHOLD = 0.1;
 const VISUAL_MAX_DIFF_RATIO = 0.01;
-const PREVIEW_PORT = 4173;
+const PREVIEW_PORT = envNumber('FIGMA_VERIFY_PORT', 4173);
+const VIEWPORT_WIDTH = envNumber('FIGMA_VERIFY_VIEWPORT_WIDTH', 390);
+const VIEWPORT_HEIGHT = envNumber('FIGMA_VERIFY_VIEWPORT_HEIGHT', 844);
+const BUILD_CMD = process.env.FIGMA_VERIFY_BUILD_CMD?.trim() || 'npm run build';
+const LINT_CMD = process.env.FIGMA_VERIFY_LINT_CMD?.trim() || 'npm run lint';
 
 const logger = createLogger('verify');
+
+function envNumber(name: string, fallback: number): number {
+  const raw = process.env[name]?.trim();
+  if (!raw) return fallback;
+  const parsed = Number(raw);
+  return Number.isFinite(parsed) && parsed > 0 ? parsed : fallback;
+}
 
 async function main(): Promise<void> {
   logger.info('Starting verify.ts — build/lint verification gate');
@@ -41,8 +52,8 @@ async function main(): Promise<void> {
 
   const apply = parseApplyReport(readFileSync(applyReportPath, 'utf-8'), applyReportPath);
   const checks: VerificationCheck[] = [
-    runCommand('build', 'npm', ['run', 'build']),
-    runCommand('lint', 'npm', ['run', 'lint']),
+    runShellCommand('build', BUILD_CMD),
+    runShellCommand('lint', LINT_CMD),
     await visualCheck(apply.status, apply.changeSetId),
   ];
 
@@ -73,22 +84,22 @@ function findLatestApplyReport(): string | null {
   return files[0] ? resolve(REPORTS_DIR, files[0]) : null;
 }
 
-function runCommand(name: string, command: string, args: string[]): VerificationCheck {
-  const printable = `${command} ${args.join(' ')}`;
-  logger.info(`Running: ${printable}`);
+function runShellCommand(name: string, command: string): VerificationCheck {
+  logger.info(`Running: ${command}`);
 
-  const result = spawnSync(command, args, {
+  const result = spawnSync(command, {
     cwd: REPO_ROOT,
     stdio: 'inherit',
+    shell: true,
   });
 
   const exitCode = result.status ?? 1;
   return {
     name,
-    command: printable,
+    command,
     status: exitCode === 0 ? 'passed' : 'failed',
     exitCode,
-    message: exitCode === 0 ? undefined : `${printable} failed`,
+    message: exitCode === 0 ? undefined : `${command} failed`,
   };
 }
 
@@ -221,7 +232,7 @@ async function captureScreenshots(baseUrl: string, targets: ScreenTarget[], outp
   const browser = await chromium.launch();
   try {
     const page = await browser.newPage({
-      viewport: { width: 390, height: 844 },
+      viewport: { width: VIEWPORT_WIDTH, height: VIEWPORT_HEIGHT },
       deviceScaleFactor: 1,
     });
     for (const target of targets) {
