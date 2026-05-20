@@ -36,7 +36,8 @@
     "figma:test:marker-candidates": "tsx scripts/pipeline/lib/code-candidates.test.ts",
     "figma:promote": "tsx --env-file=.env scripts/pipeline/promote-dev.ts",
     "figma:run": "bash scripts/pipeline/run.sh",
-    "figma:claude-review": "tsx scripts/pipeline/claude-review.ts"
+    "figma:claude-review": "tsx scripts/pipeline/claude-review.ts",
+    "figma:health": "tsx scripts/pipeline/health-check.ts"
   },
   "dependencies": {
     "lucide-react": "^1.11.0",
