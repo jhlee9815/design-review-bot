@@ -34,10 +34,15 @@ jobs:
       RESEND_FROM_EMAIL: ${{ vars.RESEND_FROM_EMAIL }}
       RESEND_TO_EMAILS: ${{ vars.RESEND_TO_EMAILS }}
       # Extraction-friendly env overrides (task-7에서 본격 활용, 미설정 시 default)
+      FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: 'true'
       FIGMA_FILE_KEY: ${{ vars.FIGMA_FILE_KEY }}
       FIGMA_CONFIG_DIR: ${{ vars.FIGMA_CONFIG_DIR }}
       FIGMA_VERIFY_BUILD_CMD: ${{ vars.FIGMA_VERIFY_BUILD_CMD }}
       FIGMA_VERIFY_LINT_CMD: ${{ vars.FIGMA_VERIFY_LINT_CMD }}
+      FIGMA_VERIFY_PORT: ${{ vars.FIGMA_VERIFY_PORT }}
+      FIGMA_VERIFY_VIEWPORT_WIDTH: ${{ vars.FIGMA_VERIFY_VIEWPORT_WIDTH }}
+      FIGMA_VERIFY_VIEWPORT_HEIGHT: ${{ vars.FIGMA_VERIFY_VIEWPORT_HEIGHT }}
+      FIGMA_PROMOTE_PORT: ${{ vars.FIGMA_PROMOTE_PORT }}
       FIGMA_SMOKE_KEYS: ${{ vars.FIGMA_SMOKE_KEYS }}
 
     steps:

@@ -196,3 +196,88 @@ gh workflow run figma-pipeline.yml -f reason="post-run-actions test"
 ## 다음
 
 task-4에서 CODEOWNERS + PR 템플릿으로 거버넌스 보강.
+
+
+## 진행 기록 — 2026-05-20 17:02 KST
+
+- Claude가 task-3을 시작해 `octokit` 의존성 및 `scripts/pipeline/post-run-actions.ts` 초안을 생성한 뒤 토큰 소진으로 중단했다.
+- Slack webhook은 아직 없으므로 env 미설정 시 skip하는 방향으로 유지한다.
+- Codex가 dry-run 안전성을 보강했다: `DRY_RUN=1`이면 GitHub search/create PR/Issue API를 호출하지 않고 로그만 출력한다.
+- 검증 명령:
+
+```bash
+DRY_RUN=1 GITHUB_REPOSITORY=jhlee9815/uno-home GITHUB_TOKEN=dummy npx tsx scripts/pipeline/post-run-actions.ts cs-2026-05-20T05-48-54
+```
+
+결과: PASS. report-only 4건에 대해 Issue 생성 예정 로그, PR skip, Slack/Discord skip 확인.
+
+## 구현 보완 사항 (실제 코드 vs 위 스켈레톤)
+
+스켈레톤에서 의도만 적었던 동작이 실제 `scripts/pipeline/post-run-actions.ts` 구현에서 다음과 같이 구체화되어 있다. 검증 시 이 6가지를 기준으로 확인한다.
+
+| # | 보완 동작 | 위치 | 의도 |
+|:-:|---|---|---|
+| 1 | 알림 채널 분리 — `notifySlack` / `notifyDiscord` 별도 함수 | post-run-actions.ts | 환경변수 부재 시 채널별 독립 skip 로그 |
+| 2 | Issue dedupe via search API — 동일 `csId` 가 제목에 포함된 open Issue를 `search.issuesAndPullRequests`로 찾고 있으면 body 업데이트, 없을 때만 신규 생성 | `createOrUpdateIssue` | 디자이너가 같은 cs를 여러 번 트리거해도 Issue 1건으로 수렴 |
+| 3 | PR no-op detection — `git status --porcelain` 결과가 비면 push/PR 자체를 skip하고 로그만 남김 | `createOrUpdatePR` | `apply.ts`가 마커 화이트리스트로 인해 실제 코드 변경을 안 만든 경우(예: marker 없는 노드) 빈 PR 방지 |
+| 4 | `truncateBody` — Issue/PR body가 60,000자를 넘으면 안내 푸터를 붙여 자르고 전체는 workflow artifact 안내 | helper | GitHub body 한도 65,536 + 여유 마진. cs 리포트가 큰 경우 안전. |
+| 5 | webhook URL redaction — DRY_RUN 로그에 20자 이상 토큰 패턴을 `<redacted>`로 마스킹 | `postWebhook` | 로그 누출 방지 (Slack/Discord webhook URL은 사실상 토큰) |
+| 6 | DRY_RUN 일관 게이트 — `exec` / `postWebhook` / `createOrUpdateIssue` / `createOrUpdatePR` 모두 `DRY_RUN=1`에서 외부 부수효과 0 | 전체 | 로컬에서 `npx tsx` 한 줄로 전체 흐름 검증 가능 |
+
+이 보완 사항은 워크플로 `Post-run routing` 단계에서도 동일하게 동작한다. 워크플로 측은 `GITHUB_TOKEN=${{ secrets.GITHUB_TOKEN }}` 만 주입하고 `DRY_RUN`은 설정하지 않는다 — 즉, Actions 환경에서는 (a) report-only 변경이 있고 (b) `issues: write` 권한이 있을 때 실제 Issue가 생성되고, PR은 추가로 (c) `git status --porcelain`이 dirty 일 때만 푸시·생성된다. apply가 no-op이면 PR은 skip.
+
+## 남은 검증 (task-3 종료 조건)
+
+> 사전 조건: `gh auth status` PASS + `gh api repos/jhlee9815/uno-home --jq .full_name` 응답 = `jhlee9815/uno-home`. V3 직전엔 격리된 worktree 또는 `git status --porcelain` 빈 상태일 것 — 본 repo의 dirty 변경이 PR 브랜치에 섞이는 사고 방지.
+
+| # | 검증 | 방법 | 성공 기준 |
+|:-:|---|---|---|
+| V1 | 실제 Issue 생성 | `GITHUB_TOKEN=$(gh auth token) GITHUB_REPOSITORY=jhlee9815/uno-home npx tsx scripts/pipeline/post-run-actions.ts cs-2026-05-20T05-48-54` 1회 (`DRY_RUN`은 unset) | report-only 4건 → Issue 1건 생성. 라벨 `designer-review` / `report-only` 부착. Issue URL 기록. (실행 전에 동일 `csId` open Issue가 이미 있으면 V1이 곧 V2로 동작하므로 한 번 검색해 확인) |
+| V2 | Issue dedupe | V1 직후 동일 명령 재실행 | 신규 Issue 미생성. "existing open issue found … updating body" 로그 출력. body 재기록 확인. |
+| V3 | PR fixture | **격리된 worktree** (`git worktree add ../uno-home-pr-fixture`)에서 합성 `<ts>-classified.json` (auto-apply ≥1건) + 합성 `cs-<ts>.md` + 더미 코드 변경 1줄 생성 → 동일 명령 (cs id는 fixture에 맞춰서) | Draft PR 1건 생성 + `designer-bot` / `auto-apply` 라벨. PR URL 기록. |
+| V4 | PR no-op skip | V3와 동일 worktree에서 더미 변경 원복 (`git checkout -- .`) 으로 `git status --porcelain` 비운 후 재실행 | PR push skip + "apply is no-op" 로그 |
+| V5 | workflow 통합 | (선택) `gh workflow run figma-pipeline.yml` | 워크플로 안에서도 V1~V4와 동일한 결과 (수동 트리거로 부족하면 task-4 끝나고 cron 결과로 대체) |
+
+V1~V4 통과하면 task-3 ✅. V5는 task-4 끝나고 cron 자연 트리거로 확인 가능하므로 task-3 종료 조건에서 분리한다.
+
+검증 후 정리:
+- V1로 생성된 Issue는 close (제목에 `[verified]` 접두 추가).
+- V3로 생성된 PR은 close + 원격 브랜치 삭제.
+- V3 fixture worktree는 `git worktree remove --force` 로 제거 (main repo의 dirty Phase 6 변경에 영향 없음).
+- fixture로 만든 `<ts>.json` / `<ts>-classified.json` / `cs-<ts>.md` 는 worktree 제거와 함께 사라짐.
+
+## 검증 결과 — 2026-05-20 20:20 KST (task-3 ✅)
+
+코덱스 1차 review (`019e4514-e802`)에서 권고한 preflight + 격리 worktree 조건을 모두 충족한 뒤 V1~V4 실행.
+
+### 사전 확인
+- 토큰: macOS keychain의 OAuth 토큰을 env var로만 주입, 파일/로그/커밋에 절대 노출 없음. 검증 종료 후 unset.
+- repo 접근: `GET /repos/jhlee9815/uno-home` → `private=True`, `default_branch=main`. PASS.
+- 동일 csId 기존 open Issue: 0건 → V1은 진짜 신규 생성.
+- worktree: `git worktree add -b designer-bot/fixture-test ../uno-home-pr-fixture origin/main` 으로 main repo의 dirty Phase 6 변경과 격리.
+
+### 결과
+
+| # | 결과 | 증거 |
+|:-:|:-:|---|
+| V1 | ✅ | Issue `#1` 신규 생성, 라벨 `designer-review` + `report-only` 자동 부착. report-only 4건. `https://github.com/jhlee9815/uno-home/issues/1` (closed) |
+| V2 | ✅ | 동일 csId 재실행 → "existing open issue found: #1 — updating body" 로그, `PATCH /issues/1` 호출, 신규 Issue 미생성. |
+| V3 | ✅ | fixture (`auto-apply=1, report-only=0`) + 더미 dirty 파일로 Draft PR `#2` 생성, 라벨 `designer-bot` + `auto-apply` 부착. `head=designer-bot/cs-fixture-2026-05-20T11-15 → base=main`. `https://github.com/jhlee9815/uno-home/pull/2` (closed) |
+| V4 | ✅ | V3 직후 clean worktree에서 동일 명령 재실행 → "`[pr] skipped — apply.ts produced no code changes (apply is no-op)`" 로그. PR push 미발생. |
+| V5 | ⏳ | task-4 종료 후 cron / `gh workflow run` 자연 트리거에서 검증. task-3 종료 조건과 분리. |
+
+### Not-tested (의도된 갭, task-3 closure 비차단)
+- **PR body update on existing PR** (`pulls.update` at `scripts/pipeline/post-run-actions.ts:222`) — V3에서는 신규 생성 경로만 탔다. 이론적으로는 Issue의 `issues.update` 와 같은 패턴이지만 동일 함수가 아니므로 직접 검증되지 않았다. task-4에서 동일 fixture 재실행 또는 자연 cs 발생 시 함께 확인.
+- 워크플로 통합 (V5) — task-4 종료 후 cron으로.
+
+### Cleanup 결과 (코덱스 2차 review `session 019e4514-e802` 권고 항목 포함)
+- Issue `#1`: `PATCH state=closed`, 제목 `[verified] [designer-review] …` 프리픽스 추가. ✅
+- PR `#2`: `PATCH state=closed`. ✅
+- 원격 브랜치 `designer-bot/cs-fixture-2026-05-20T11-15`: `DELETE /git/refs/heads/...` → HTTP 204. `git ls-remote --heads origin "designer-bot/*"` 결과 0건으로 확인. ✅
+- worktree `../uno-home-pr-fixture`: `git worktree remove --force` 로 제거. 로컬 fixture 브랜치 2개(`designer-bot/fixture-test`, `designer-bot/cs-fixture-2026-05-20T11-15`) 삭제. ✅
+- main repo dirty 상태(Phase 6 task-7 코드 + Phase 6/7 문서 수정 + post-run-actions.ts/package.json/package-lock.json)는 V3 전과 100% 동일 — 영향 없음. ✅
+- 잔여 라벨(`designer-review`, `report-only`, `designer-bot`, `auto-apply`)은 의도된 산출물. task-4에서 색상/설명 표준화 예정.
+
+### 코덱스 검증 세션
+- 1차 (doc patch + 정적 검증): `session 019e4514-e802-7f72-9f36-e9fb4a0b2371` — PASS
+- 2차 (V1~V4 evidence + cleanup): 위 동일 세션 후속 호출 — PASS
