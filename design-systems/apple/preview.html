@@ -1,0 +1,231 @@
+<!doctype html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>UNO HOME × Apple-inspired Design System Preview</title>
+  <link rel="icon" href="data:,">
+  <style>
+    :root {
+      --apple-pure-black: #000000;
+      --apple-white: #ffffff;
+      --apple-light-gray: #f5f5f7;
+      --apple-near-black: #1d1d1f;
+      --apple-blue: #0071e3;
+      --apple-link-blue: #0066cc;
+      --apple-bright-blue: #2997ff;
+      --apple-black-80: rgba(0, 0, 0, 0.8);
+      --apple-black-48: rgba(0, 0, 0, 0.48);
+      --apple-white-80: rgba(255, 255, 255, 0.8);
+      --apple-white-48: rgba(255, 255, 255, 0.48);
+      --apple-dark-surface-1: #272729;
+      --apple-dark-surface-2: #28282a;
+      --apple-dark-surface-3: #2a2a2d;
+      --apple-overlay: rgba(210, 210, 215, 0.64);
+      --apple-shadow-card: rgba(0, 0, 0, 0.22) 3px 5px 30px 0px;
+      --apple-radius-standard: 8px;
+      --apple-radius-comfortable: 11px;
+      --apple-radius-large: 12px;
+      --apple-radius-pill: 980px;
+      --font-display: Inter, -apple-system, BlinkMacSystemFont, "SF Pro Display", "Helvetica Neue", Helvetica, Arial, sans-serif;
+      --font-text: Inter, -apple-system, BlinkMacSystemFont, "SF Pro Text", "Helvetica Neue", Helvetica, Arial, sans-serif;
+    }
+
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      font-family: var(--font-text);
+      color: var(--apple-near-black);
+      background: var(--apple-white);
+    }
+    .glass-nav {
+      position: sticky;
+      top: 0;
+      z-index: 10;
+      height: 48px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 28px;
+      background: rgba(0, 0, 0, 0.8);
+      backdrop-filter: saturate(180%) blur(20px);
+      color: var(--apple-white);
+      font-size: 12px;
+      letter-spacing: -0.01em;
+    }
+    .logo { font-size: 16px; font-weight: 600; }
+    .disclaimer { margin-left: 24px; color: rgba(255,255,255,.64); font-size: 11px; }
+    .hero {
+      min-height: 560px;
+      padding: 96px 32px 80px;
+      text-align: center;
+      background: var(--apple-light-gray);
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+    }
+    .eyebrow {
+      margin: 0 0 12px;
+      font-size: 12px;
+      font-weight: 600;
+      color: var(--apple-black-48);
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+    }
+    h1 {
+      margin: 0;
+      font-family: var(--font-display);
+      font-size: clamp(42px, 8vw, 72px);
+      font-weight: 600;
+      line-height: 1.07;
+      letter-spacing: -0.04em;
+    }
+    .subtitle {
+      margin: 18px auto 30px;
+      max-width: 680px;
+      font-family: var(--font-display);
+      font-size: 21px;
+      font-weight: 400;
+      line-height: 1.19;
+      letter-spacing: 0.231px;
+      color: var(--apple-black-80);
+    }
+    .cta-row { display: flex; gap: 14px; justify-content: center; flex-wrap: wrap; }
+    .btn {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      min-height: 42px;
+      padding: 8px 18px;
+      border-radius: var(--apple-radius-pill);
+      font-size: 17px;
+      line-height: 1;
+      text-decoration: none;
+      border: 1px solid transparent;
+    }
+    .btn-primary { background: var(--apple-blue); color: var(--apple-white); }
+    .btn-outline { background: transparent; color: var(--apple-link-blue); border-color: var(--apple-link-blue); }
+    section { padding: 72px 32px; }
+    .container { max-width: 1120px; margin: 0 auto; }
+    .section-title {
+      margin: 0 0 32px;
+      font-family: var(--font-display);
+      font-size: 40px;
+      font-weight: 600;
+      line-height: 1.1;
+      letter-spacing: -0.28px;
+    }
+    .grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 16px; }
+    .swatch, .card, .type-row {
+      border-radius: var(--apple-radius-standard);
+      background: var(--apple-light-gray);
+      overflow: hidden;
+    }
+    .swatch-color { height: 96px; }
+    .swatch-info { padding: 14px; }
+    .swatch-name { font-size: 13px; font-weight: 600; letter-spacing: -0.26px; }
+    .swatch-value { margin-top: 4px; font-size: 12px; color: var(--apple-black-48); font-family: ui-monospace, SFMono-Regular, Menlo, monospace; }
+    .type-stack { display: grid; gap: 12px; }
+    .type-row { padding: 24px; background: var(--apple-white); box-shadow: 0 0 0 1px rgba(0,0,0,0.08); }
+    .type-meta { margin-top: 8px; font-size: 12px; color: var(--apple-black-48); font-family: ui-monospace, SFMono-Regular, Menlo, monospace; }
+    .components { background: var(--apple-light-gray); }
+    .component-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 20px; }
+    .card { padding: 32px 24px; background: var(--apple-white); transition: box-shadow .2s ease; }
+    .card:hover { box-shadow: var(--apple-shadow-card); }
+    .card h3 { margin: 0 0 8px; font-family: var(--font-display); font-size: 28px; font-weight: 400; line-height: 1.14; letter-spacing: 0.196px; }
+    .card p { margin: 0 0 16px; font-size: 14px; color: var(--apple-black-80); line-height: 1.43; letter-spacing: -0.224px; }
+    .card a { color: var(--apple-link-blue); text-decoration: none; font-size: 14px; }
+    .dark-demo {
+      background: var(--apple-pure-black);
+      color: var(--apple-white);
+    }
+    .dark-demo .section-title { color: var(--apple-white); }
+    .dark-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); gap: 20px; }
+    .dark-card { padding: 28px; border-radius: var(--apple-radius-large); background: var(--apple-dark-surface-1); }
+    .dark-card p { color: var(--apple-white-80); }
+    .pill-note {
+      display: inline-flex;
+      margin-top: 20px;
+      padding: 7px 14px;
+      border-radius: var(--apple-radius-pill);
+      background: var(--apple-overlay);
+      color: var(--apple-black-48);
+      font-size: 12px;
+    }
+    footer { padding: 32px; text-align: center; background: var(--apple-light-gray); color: var(--apple-black-48); font-size: 12px; }
+  </style>
+</head>
+<body>
+  <nav class="glass-nav">
+    <div class="logo">UNO × Apple DS</div>
+    <span>Tokens</span><span>Typography</span><span>Components</span><span>Review</span><span class="disclaimer">Apple-inspired only · not official</span>
+  </nav>
+
+  <main>
+    <section class="hero">
+      <p class="eyebrow">External Design System Input</p>
+      <h1>Apple-inspired<br />Design System</h1>
+      <p class="subtitle">Markdown 디자인 시스템을 토큰, 컴포넌트 규칙, 개발 체크리스트로 변환하기 위한 UNO HOME 실험용 미리보기입니다.</p>
+      <div class="cta-row">
+        <a class="btn btn-primary" href="#tokens">View Tokens</a>
+        <a class="btn btn-outline" href="#components">Component Rules</a>
+      </div>
+      <span class="pill-note">Not official Apple DS · Apple-inspired reference only</span>
+    </section>
+
+    <section id="tokens">
+      <div class="container">
+        <p class="eyebrow">01 · Color roles</p>
+        <h2 class="section-title">Single accent, cinematic neutrals.</h2>
+        <div class="grid">
+          <div class="swatch"><div class="swatch-color" style="background:#000"></div><div class="swatch-info"><div class="swatch-name">Pure Black</div><div class="swatch-value">#000000</div></div></div>
+          <div class="swatch"><div class="swatch-color" style="background:#f5f5f7"></div><div class="swatch-info"><div class="swatch-name">Light Gray</div><div class="swatch-value">#f5f5f7</div></div></div>
+          <div class="swatch"><div class="swatch-color" style="background:#1d1d1f"></div><div class="swatch-info"><div class="swatch-name">Near Black</div><div class="swatch-value">#1d1d1f</div></div></div>
+          <div class="swatch"><div class="swatch-color" style="background:#0071e3"></div><div class="swatch-info"><div class="swatch-name">Apple Blue</div><div class="swatch-value">#0071e3</div></div></div>
+          <div class="swatch"><div class="swatch-color" style="background:#0066cc"></div><div class="swatch-info"><div class="swatch-name">Link Blue</div><div class="swatch-value">#0066cc</div></div></div>
+          <div class="swatch"><div class="swatch-color" style="background:#2997ff"></div><div class="swatch-info"><div class="swatch-name">Bright Blue</div><div class="swatch-value">#2997ff</div></div></div>
+        </div>
+      </div>
+    </section>
+
+    <section>
+      <div class="container">
+        <p class="eyebrow">02 · Typography roles</p>
+        <h2 class="section-title">Compressed headlines, readable body.</h2>
+        <div class="type-stack">
+          <div class="type-row"><div style="font-family:var(--font-display);font-size:56px;font-weight:600;line-height:1.07;letter-spacing:-0.28px">Display Hero</div><div class="type-meta">56 / 600 / 1.07 / -0.28px</div></div>
+          <div class="type-row"><div style="font-family:var(--font-display);font-size:40px;font-weight:600;line-height:1.10;letter-spacing:-0.28px">Section Heading</div><div class="type-meta">40 / 600 / 1.10 / -0.28px</div></div>
+          <div class="type-row"><div style="font-family:var(--font-display);font-size:28px;font-weight:400;line-height:1.14;letter-spacing:0.196px">Tile Heading</div><div class="type-meta">28 / 400 / 1.14 / 0.196px</div></div>
+          <div class="type-row"><div style="font-family:var(--font-text);font-size:17px;font-weight:400;line-height:1.47;letter-spacing:-0.374px">Body text converts the design system rules into implementation-ready guidance.</div><div class="type-meta">17 / 400 / 1.47 / -0.374px</div></div>
+        </div>
+      </div>
+    </section>
+
+    <section id="components" class="components">
+      <div class="container">
+        <p class="eyebrow">03 · Component candidates</p>
+        <h2 class="section-title">Small components first.</h2>
+        <div class="component-grid">
+          <div class="card"><h3>Button</h3><p>Primary Blue, Primary Dark, Pill Link로 분리해 UNO Button variant 실험 후보로 사용합니다.</p><a href="#">Learn more ></a></div>
+          <div class="card"><h3>Product Card</h3><p>Light gray surface, rare shadow, centered content를 Card adapter 후보로 둡니다.</p><a href="#">Shop ></a></div>
+          <div class="card"><h3>Hero Section</h3><p>Full-width section, 56px headline, two CTAs를 데모 전용 Hero로 검증합니다.</p><a href="#">View guide ></a></div>
+        </div>
+      </div>
+    </section>
+
+    <section class="dark-demo">
+      <div class="container">
+        <p class="eyebrow" style="color:var(--apple-white-48)">04 · Dark mode</p>
+        <h2 class="section-title">Black scenes for focused moments.</h2>
+        <div class="dark-grid">
+          <div class="dark-card"><h3>Dark Surface</h3><p>#272729 to #2a2a2d cards for premium, low-chrome content.</p><a class="btn btn-primary" href="#">Continue</a></div>
+          <div class="dark-card"><h3>Bright Blue Links</h3><p>#2997ff maintains contrast against black scenes while preserving the single-accent rule.</p><a style="color:var(--apple-bright-blue);text-decoration:none" href="#">Learn more ></a></div>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <footer>Generated for UNO HOME design automation experiment · Phase 2 preview</footer>
+</body>
+</html>

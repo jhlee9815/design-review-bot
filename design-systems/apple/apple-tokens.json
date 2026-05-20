@@ -1,0 +1,563 @@
+{
+  "$schema": "https://design-tokens.github.io/community-group/format/",
+  "$metadata": {
+    "name": "Apple-inspired Design System Tokens",
+    "created": "2026-05-20",
+    "source": "/Users/juhee/Work/Test/awesome-design-md/design-md/apple/DESIGN.md",
+    "sourceType": "Markdown reference, not official Apple design system",
+    "usage": "External design-system input for UNO HOME token/component/checklist experiment",
+    "tokenSetOrder": [
+      "apple.primitives",
+      "apple.semantic.light",
+      "apple.semantic.dark",
+      "apple.typography",
+      "apple.spacing",
+      "apple.radius",
+      "apple.shadow",
+      "apple.component"
+    ],
+    "automationPolicy": {
+      "safeAutoCandidates": [
+        "color",
+        "fontSize",
+        "fontWeight",
+        "lineHeight",
+        "letterSpacing",
+        "radius",
+        "shadow"
+      ],
+      "requiresHumanReview": [
+        "layout rhythm",
+        "photography",
+        "brand fit",
+        "navigation structure",
+        "full app redesign"
+      ],
+      "note": "These tokens do not include Figma node IDs. Figma snapshot/diff automation still requires figma-mapping.yaml bindings."
+    }
+  },
+  "apple": {
+    "primitives": {
+      "color": {
+        "pureBlack": {
+          "$value": "#000000",
+          "$type": "color",
+          "$description": "Immersive hero and product showcase background"
+        },
+        "white": {
+          "$value": "#ffffff",
+          "$type": "color",
+          "$description": "Text on dark backgrounds and light surface"
+        },
+        "lightGray": {
+          "$value": "#f5f5f7",
+          "$type": "color",
+          "$description": "Light informational section background"
+        },
+        "nearBlack": {
+          "$value": "#1d1d1f",
+          "$type": "color",
+          "$description": "Primary text on light backgrounds and dark button fill"
+        },
+        "appleBlue": {
+          "$value": "#0071e3",
+          "$type": "color",
+          "$description": "Primary CTA/focus/accent color"
+        },
+        "linkBlue": {
+          "$value": "#0066cc",
+          "$type": "color",
+          "$description": "Inline link color on light backgrounds"
+        },
+        "brightBlue": {
+          "$value": "#2997ff",
+          "$type": "color",
+          "$description": "Interactive/link color on dark backgrounds"
+        },
+        "black80": {
+          "$value": "rgba(0, 0, 0, 0.8)",
+          "$type": "color",
+          "$description": "Secondary text on light backgrounds"
+        },
+        "black48": {
+          "$value": "rgba(0, 0, 0, 0.48)",
+          "$type": "color",
+          "$description": "Tertiary/disabled text on light backgrounds"
+        },
+        "white80": {
+          "$value": "rgba(255, 255, 255, 0.8)",
+          "$type": "color",
+          "$description": "Secondary text on dark backgrounds"
+        },
+        "white48": {
+          "$value": "rgba(255, 255, 255, 0.48)",
+          "$type": "color",
+          "$description": "Tertiary/disabled text on dark backgrounds"
+        },
+        "buttonActiveLight": {
+          "$value": "#ededf2",
+          "$type": "color",
+          "$description": "Light button active state"
+        },
+        "filterBackground": {
+          "$value": "#fafafc",
+          "$type": "color",
+          "$description": "Filter/search control background"
+        },
+        "darkSurface1": {
+          "$value": "#272729",
+          "$type": "color",
+          "$description": "Dark card surface"
+        },
+        "darkSurface2": {
+          "$value": "#28282a",
+          "$type": "color",
+          "$description": "Dark elevated surface"
+        },
+        "darkSurface3": {
+          "$value": "#2a2a2d",
+          "$type": "color",
+          "$description": "Higher dark surface"
+        },
+        "darkSurface4": {
+          "$value": "#242426",
+          "$type": "color",
+          "$description": "Deep dark surface tone"
+        },
+        "overlayLight": {
+          "$value": "rgba(210, 210, 215, 0.64)",
+          "$type": "color",
+          "$description": "Light media overlay/scrim"
+        },
+        "overlayDark": {
+          "$value": "rgba(60, 60, 67, 0.64)",
+          "$type": "color",
+          "$description": "Dark media overlay/scrim"
+        },
+        "systemRedLight": {
+          "$value": "#ff3b30",
+          "$type": "color",
+          "$description": "Input/error state on light backgrounds"
+        },
+        "systemRedDark": {
+          "$value": "#ff453a",
+          "$type": "color",
+          "$description": "Input/error state on dark backgrounds"
+        }
+      }
+    },
+    "semantic": {
+      "light": {
+        "background": {
+          "page": {
+            "$value": "{apple.primitives.color.white}",
+            "$type": "color"
+          },
+          "section": {
+            "$value": "{apple.primitives.color.lightGray}",
+            "$type": "color"
+          },
+          "immersive": {
+            "$value": "{apple.primitives.color.pureBlack}",
+            "$type": "color"
+          },
+          "card": {
+            "$value": "{apple.primitives.color.lightGray}",
+            "$type": "color"
+          }
+        },
+        "text": {
+          "primary": {
+            "$value": "{apple.primitives.color.nearBlack}",
+            "$type": "color"
+          },
+          "secondary": {
+            "$value": "{apple.primitives.color.black80}",
+            "$type": "color"
+          },
+          "tertiary": {
+            "$value": "{apple.primitives.color.black48}",
+            "$type": "color"
+          },
+          "inverse": {
+            "$value": "{apple.primitives.color.white}",
+            "$type": "color"
+          },
+          "link": {
+            "$value": "{apple.primitives.color.linkBlue}",
+            "$type": "color"
+          }
+        },
+        "interactive": {
+          "primary": {
+            "$value": "{apple.primitives.color.appleBlue}",
+            "$type": "color"
+          },
+          "focus": {
+            "$value": "{apple.primitives.color.appleBlue}",
+            "$type": "color"
+          },
+          "link": {
+            "$value": "{apple.primitives.color.linkBlue}",
+            "$type": "color"
+          }
+        }
+      },
+      "dark": {
+        "background": {
+          "page": {
+            "$value": "{apple.primitives.color.pureBlack}",
+            "$type": "color"
+          },
+          "section": {
+            "$value": "{apple.primitives.color.nearBlack}",
+            "$type": "color"
+          },
+          "card": {
+            "$value": "{apple.primitives.color.darkSurface1}",
+            "$type": "color"
+          },
+          "elevated": {
+            "$value": "{apple.primitives.color.darkSurface3}",
+            "$type": "color"
+          }
+        },
+        "text": {
+          "primary": {
+            "$value": "{apple.primitives.color.lightGray}",
+            "$type": "color"
+          },
+          "secondary": {
+            "$value": "{apple.primitives.color.white80}",
+            "$type": "color"
+          },
+          "tertiary": {
+            "$value": "{apple.primitives.color.white48}",
+            "$type": "color"
+          },
+          "link": {
+            "$value": "{apple.primitives.color.brightBlue}",
+            "$type": "color"
+          }
+        },
+        "interactive": {
+          "primary": {
+            "$value": "{apple.primitives.color.brightBlue}",
+            "$type": "color"
+          },
+          "focus": {
+            "$value": "{apple.primitives.color.brightBlue}",
+            "$type": "color"
+          },
+          "link": {
+            "$value": "{apple.primitives.color.brightBlue}",
+            "$type": "color"
+          }
+        }
+      }
+    },
+    "typography": {
+      "fontFamily": {
+        "display": {
+          "$value": "Inter, -apple-system, BlinkMacSystemFont, Helvetica Neue, Helvetica, Arial, sans-serif",
+          "$type": "fontFamily",
+          "$description": "Safe default for local prototype. SF Pro is not bundled; avoid implying official Apple font usage."
+        },
+        "text": {
+          "$value": "Inter, -apple-system, BlinkMacSystemFont, Helvetica Neue, Helvetica, Arial, sans-serif",
+          "$type": "fontFamily",
+          "$description": "Safe default for local prototype. SF Pro is not bundled; avoid implying official Apple font usage."
+        },
+        "projectFallback": {
+          "$value": "Inter, -apple-system, BlinkMacSystemFont, Helvetica Neue, Helvetica, Arial, SF Pro Display, SF Pro Text, sans-serif",
+          "$type": "fontFamily",
+          "$description": "Optional fallback order that leaves SF Pro late in the stack only if locally available."
+        }
+      },
+      "roles": {
+        "displayHero": {
+          "fontFamily": "{apple.typography.fontFamily.display}",
+          "fontSize": "56px",
+          "fontWeight": 600,
+          "lineHeight": 1.07,
+          "letterSpacing": "-0.28px"
+        },
+        "sectionHeading": {
+          "fontFamily": "{apple.typography.fontFamily.display}",
+          "fontSize": "40px",
+          "fontWeight": 600,
+          "lineHeight": 1.1,
+          "letterSpacing": "-0.28px"
+        },
+        "tileHeading": {
+          "fontFamily": "{apple.typography.fontFamily.display}",
+          "fontSize": "28px",
+          "fontWeight": 400,
+          "lineHeight": 1.14,
+          "letterSpacing": "0.196px"
+        },
+        "cardTitleBold": {
+          "fontFamily": "{apple.typography.fontFamily.display}",
+          "fontSize": "21px",
+          "fontWeight": 700,
+          "lineHeight": 1.19,
+          "letterSpacing": "0.231px"
+        },
+        "subHeading": {
+          "fontFamily": "{apple.typography.fontFamily.display}",
+          "fontSize": "21px",
+          "fontWeight": 400,
+          "lineHeight": 1.19,
+          "letterSpacing": "0.231px"
+        },
+        "body": {
+          "fontFamily": "{apple.typography.fontFamily.text}",
+          "fontSize": "17px",
+          "fontWeight": 400,
+          "lineHeight": 1.47,
+          "letterSpacing": "-0.374px"
+        },
+        "bodyEmphasis": {
+          "fontFamily": "{apple.typography.fontFamily.text}",
+          "fontSize": "17px",
+          "fontWeight": 600,
+          "lineHeight": 1.24,
+          "letterSpacing": "-0.374px"
+        },
+        "button": {
+          "fontFamily": "{apple.typography.fontFamily.text}",
+          "fontSize": "17px",
+          "fontWeight": 400,
+          "lineHeight": 1.0,
+          "letterSpacing": "0px"
+        },
+        "link": {
+          "fontFamily": "{apple.typography.fontFamily.text}",
+          "fontSize": "14px",
+          "fontWeight": 400,
+          "lineHeight": 1.43,
+          "letterSpacing": "-0.224px"
+        },
+        "caption": {
+          "fontFamily": "{apple.typography.fontFamily.text}",
+          "fontSize": "14px",
+          "fontWeight": 400,
+          "lineHeight": 1.29,
+          "letterSpacing": "-0.224px"
+        },
+        "micro": {
+          "fontFamily": "{apple.typography.fontFamily.text}",
+          "fontSize": "12px",
+          "fontWeight": 400,
+          "lineHeight": 1.33,
+          "letterSpacing": "-0.12px"
+        },
+        "nano": {
+          "fontFamily": "{apple.typography.fontFamily.text}",
+          "fontSize": "10px",
+          "fontWeight": 400,
+          "lineHeight": 1.47,
+          "letterSpacing": "-0.08px"
+        }
+      }
+    },
+    "spacing": {
+      "scale": {
+        "2": {
+          "$value": "2px",
+          "$type": "dimension"
+        },
+        "4": {
+          "$value": "4px",
+          "$type": "dimension"
+        },
+        "5": {
+          "$value": "5px",
+          "$type": "dimension"
+        },
+        "6": {
+          "$value": "6px",
+          "$type": "dimension"
+        },
+        "7": {
+          "$value": "7px",
+          "$type": "dimension"
+        },
+        "8": {
+          "$value": "8px",
+          "$type": "dimension"
+        },
+        "9": {
+          "$value": "9px",
+          "$type": "dimension"
+        },
+        "10": {
+          "$value": "10px",
+          "$type": "dimension"
+        },
+        "11": {
+          "$value": "11px",
+          "$type": "dimension"
+        },
+        "14": {
+          "$value": "14px",
+          "$type": "dimension"
+        },
+        "15": {
+          "$value": "15px",
+          "$type": "dimension"
+        },
+        "17": {
+          "$value": "17px",
+          "$type": "dimension"
+        },
+        "20": {
+          "$value": "20px",
+          "$type": "dimension"
+        },
+        "24": {
+          "$value": "24px",
+          "$type": "dimension"
+        },
+        "32": {
+          "$value": "32px",
+          "$type": "dimension"
+        },
+        "64": {
+          "$value": "64px",
+          "$type": "dimension"
+        },
+        "80": {
+          "$value": "80px",
+          "$type": "dimension"
+        },
+        "96": {
+          "$value": "96px",
+          "$type": "dimension"
+        }
+      },
+      "layout": {
+        "navHeight": {
+          "$value": "48px",
+          "$type": "dimension"
+        },
+        "touchTarget": {
+          "$value": "44px",
+          "$type": "dimension"
+        },
+        "maxContentWidth": {
+          "$value": "980px",
+          "$type": "dimension"
+        },
+        "sectionPaddingY": {
+          "$value": "64px",
+          "$type": "dimension"
+        },
+        "heroPaddingTop": {
+          "$value": "96px",
+          "$type": "dimension"
+        }
+      }
+    },
+    "radius": {
+      "micro": {
+        "$value": "5px",
+        "$type": "dimension"
+      },
+      "standard": {
+        "$value": "8px",
+        "$type": "dimension"
+      },
+      "comfortable": {
+        "$value": "11px",
+        "$type": "dimension"
+      },
+      "large": {
+        "$value": "12px",
+        "$type": "dimension"
+      },
+      "pill": {
+        "$value": "980px",
+        "$type": "dimension"
+      },
+      "circle": {
+        "$value": "50%",
+        "$type": "dimension"
+      }
+    },
+    "shadow": {
+      "card": {
+        "$value": "rgba(0, 0, 0, 0.22) 3px 5px 30px 0px",
+        "$type": "shadow"
+      },
+      "cardDark": {
+        "$value": "rgba(0, 0, 0, 0.5) 3px 5px 30px 0px",
+        "$type": "shadow"
+      },
+      "focusLight": {
+        "$value": "0 0 0 3px rgba(0, 113, 227, 0.2)",
+        "$type": "shadow"
+      },
+      "focusDark": {
+        "$value": "0 0 0 3px rgba(41, 151, 255, 0.25)",
+        "$type": "shadow"
+      }
+    },
+    "component": {
+      "button": {
+        "primaryBlue": {
+          "background": "{apple.primitives.color.appleBlue}",
+          "text": "{apple.primitives.color.white}",
+          "paddingY": "8px",
+          "paddingX": "15px",
+          "radius": "{apple.radius.standard}",
+          "font": "{apple.typography.roles.button}"
+        },
+        "primaryDark": {
+          "background": "{apple.primitives.color.nearBlack}",
+          "text": "{apple.primitives.color.white}",
+          "paddingY": "8px",
+          "paddingX": "15px",
+          "radius": "{apple.radius.standard}",
+          "font": "{apple.typography.roles.button}"
+        },
+        "pillLink": {
+          "background": "transparent",
+          "textLight": "{apple.primitives.color.linkBlue}",
+          "textDark": "{apple.primitives.color.brightBlue}",
+          "radius": "{apple.radius.pill}",
+          "border": "1px solid currentColor",
+          "font": "{apple.typography.roles.link}"
+        }
+      },
+      "card": {
+        "productTile": {
+          "background": "{apple.primitives.color.lightGray}",
+          "darkBackground": "{apple.primitives.color.darkSurface1}",
+          "radius": "{apple.radius.standard}",
+          "shadow": "none by default; use {apple.shadow.card} only for elevated state",
+          "title": "{apple.typography.roles.tileHeading}",
+          "body": "{apple.typography.roles.caption}"
+        }
+      },
+      "navigation": {
+        "glass": {
+          "height": "48px",
+          "background": "rgba(0, 0, 0, 0.8)",
+          "backdropFilter": "saturate(180%) blur(20px)",
+          "textSize": "12px",
+          "textColor": "{apple.primitives.color.white}"
+        }
+      },
+      "hero": {
+        "productHero": {
+          "backgroundLight": "{apple.primitives.color.lightGray}",
+          "backgroundDark": "{apple.primitives.color.pureBlack}",
+          "headline": "{apple.typography.roles.displayHero}",
+          "subtitle": "{apple.typography.roles.subHeading}",
+          "layout": "full-width section with centered content"
+        }
+      }
+    }
+  }
+}

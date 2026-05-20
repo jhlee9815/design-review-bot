@@ -1,0 +1,14 @@
+figma:
+  fileKey: SXPVingkmqkrcLzcXYFsZd
+  fileUrl: https://www.figma.com/design/SXPVingkmqkrcLzcXYFsZd/Untitled
+
+automation:
+  stages:
+    - preflight
+    - snapshot
+    - diff
+    - classify
+    - apply-to-code
+    - verify
+    - designer-review
+    - promote-to-dev
