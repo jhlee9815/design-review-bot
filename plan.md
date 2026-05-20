@@ -17,7 +17,7 @@
 | **Phase 6 — Phase A 실서비스화** | **🚧 진행 중: task-1/2/3/4/7 ✅, task-5/6 남음** | `project-plan/phase-6/` |
 | **Phase 7 — Phase B 재사용 추출** | **⏳ Phase 6 종료 후** | `project-plan/phase-7/` |
 
-**현재 액션**: **task-5 Cloudflare Worker Figma webhook 프록시**. Cloudflare 계정 + wrangler 설치 필요. (Slack 트리거는 이미 GitHub 공식 Slack 앱으로 가능 — `/github workflow run`)
+**현재 액션**: **운영 관찰 기간 (~2026-05-23)**. task-3/4 첫 자연 트리거 통과 직후 — cron 자연 실행을 2-3일 관찰해 안정성 확인 후 task-5 진입. 세부: [phase-plan-6 §6-8-A](./project-plan/phase-6/phase-plan-6.md#6-8-a-운영-관찰-기간-task-5-진입-전-2026-05-20--05-23-권장).
 **블로커**: 기술 블로커 없음. Slack webhook/Cloudflare/Resend는 외부 준비가 필요할 때까지 env 미설정 skip 방식.
 **보류 항목**: 다른 팀 공유는 Phase 7 완료 전까지 금지 (Codex 권고).
 

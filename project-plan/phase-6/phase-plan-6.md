@@ -140,6 +140,51 @@ Phase 7로 넘어가려면:
 
 위 조건이 안 충족되면 Phase 7는 미루고 Phase 6 안정화에 집중.
 
+## 6-8-A. 운영 관찰 기간 (task-5 진입 전, 2026-05-20 ~ 05-23 권장)
+
+task-3/4가 첫 자연 트리거로 동작 확인됨. task-5(Cloudflare webhook 자동 트리거) 진입 전에 2-3일 cron 자연 실행 관찰로 안정성 확인.
+
+### 관찰 목적
+- cron이 매 2시간마다 정상 실행되는지
+- figma 파일 변경 누적이 알림 폭주로 이어지지 않는지
+- post-run-actions의 `report-only` 경로가 일관되게 동작하는지
+- Slack 알림이 누락 없이 채널에 도달하는지
+
+### 매일 1번 5분 체크 (사용자)
+1. Slack 채널 — 지난 24h 동안 figma-pipeline 알림 횟수와 결과(성공/실패) 확인.
+2. GitHub Actions 페이지 — workflow 실행 목록에 실패(❌)가 있으면 로그 확인.
+3. Open Issue 수 — `gh issue list --label designer-review` 또는 https://github.com/jhlee9815/uno-home/issues 에서 designer-review 라벨 Issue 누적량.
+
+### 이상 신호 정의 (즉시 대응)
+- workflow conclusion=`failure` 가 연속 2회 이상 — figma API 또는 코드 회귀.
+- 같은 변경 노드에 대한 Issue가 매 cron마다 새로 생성됨 — cs id가 매번 달라서 dedupe가 안 먹는다는 뜻. classify-diff/snapshot 안정성 문제일 수 있음.
+- 디자이너가 figma 파일 안 만졌는데 변경 N건이 계속 잡힘 — snapshot 비결정성. fix 필요.
+- post-run-actions가 PR 경로를 한 번도 안 탐 — 정상 (현재 활성 마커는 `pesse.send.cta` 1개뿐이라 매우 드물게만 발동).
+
+### 정상 신호
+- cron 12회/일 중 figma 변경 0건이라 post-run skip이 다수, 가끔 변경 잡히면 Issue 1건 생성.
+- workflow 평균 30-60초.
+- Slack 알림 누락 없음.
+
+### 다음 세션 진입 시 첫 5분
+```bash
+cd /Users/juhee/Work/Test/design-test/uno-home
+git pull --rebase
+gh issue list --label designer-review --state open  # 또는 GitHub UI
+# 또는 API:
+# curl -sS -H "Authorization: Bearer $(security find-internet-password -gw -s github.com)" \
+#   "https://api.github.com/repos/jhlee9815/uno-home/actions/workflows/figma-pipeline.yml/runs?per_page=20" \
+#   | python3 -c "import sys,json; [print(r['conclusion'], r['event'], r['created_at']) for r in json.load(sys.stdin)['workflow_runs']]"
+```
+관찰 결과가 "정상 신호" 패턴이면 → task-5 진입.
+"이상 신호" 발견이면 → 원인부터 fix.
+
+### task-5 진입 사전 준비 (관찰 기간 동안 사용자가 준비)
+- [ ] Cloudflare 계정 생성 (무료) → workers.cloudflare.com
+- [ ] `npm install -g wrangler` + `wrangler login`
+- [ ] Figma 파일 페이지에서 webhook passcode 후보 결정 (랜덤 문자열)
+- [ ] (선택) GitHub fine-grained PAT 발급 — scope: `Actions:write` for `jhlee9815/uno-home` (Worker가 `repository_dispatch` 호출용)
+
 
 ## 6-9. 현재 handoff / 다음 액션
 

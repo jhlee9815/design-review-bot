@@ -1,7 +1,7 @@
 # TODO — 다음 세션 시작 가이드
 
 > 작성: 2026-05-20
-> 최신 갱신: 2026-05-20 21:05 KST (Phase 6 task-1/2/3/4/7 ✅ + V5 자연 트리거 통과, 다음 task-5)
+> 최신 갱신: 2026-05-20 21:15 KST (Phase 6 task-1/2/3/4/7 ✅, **운영 관찰 기간** 진입 — 2026-05-23까지 cron 자연 실행 관찰 후 task-5)
 
 ---
 
@@ -36,7 +36,21 @@ npx tsc --noEmit
 
 ---
 
-## 2. 우선순위 1 — task-5 Cloudflare Worker (Figma webhook 프록시)
+## 2. 우선순위 1 — 운영 관찰 기간 (~2026-05-23)
+
+task-3/4 첫 자연 트리거 통과 직후. cron 2시간 주기로 자연 실행되는 결과를 2-3일 관찰. 세부 가이드: [`project-plan/phase-6/phase-plan-6.md`](./project-plan/phase-6/phase-plan-6.md#6-8-a-운영-관찰-기간-task-5-진입-전-2026-05-20--05-23-권장).
+
+매일 5분 체크:
+1. Slack 채널 — figma-pipeline 알림 + 결과
+2. GitHub Actions 실행 목록 — failure 있는지
+3. designer-review 라벨 Issue 누적량
+
+정상 신호: 대부분 cron 실행이 "변경 0건 → post-run skip", 가끔 변경 잡히면 Issue 1건.
+이상 신호: 연속 failure / 같은 노드에 대한 Issue 무한 누적 / figma 안 만졌는데 변경 계속 잡힘 → 즉시 fix.
+
+관찰 끝나면 → 우선순위 2(task-5).
+
+## 3. 우선순위 2 — task-5 Cloudflare Worker (Figma webhook 프록시, 관찰 후)
 
 - 필요: Cloudflare 계정, `wrangler` CLI, GitHub fine-grained PAT (workflow trigger 권한), Figma webhook passcode.
 - 목표: Figma 파일 편집 → Figma webhook → Cloudflare Worker → GitHub `repository_dispatch` → workflow `figma-pipeline.yml` 자동 트리거.
@@ -45,7 +59,7 @@ npx tsc --noEmit
 
 ---
 
-## 3. 우선순위 2 — task-6 Resend 이메일
+## 3-1. 우선순위 3 — task-6 Resend 이메일
 
 - 필요: Resend API key, from domain/email, recipient list.
 - 현재 방침: env 미설정 시 skip (코드 분기 이미 있음).
