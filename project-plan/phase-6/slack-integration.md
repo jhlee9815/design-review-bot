@@ -16,17 +16,36 @@ Slack에서 자연어 ("변경된거 확인해줘") 대신 슬래시 명령(`/gi
 
 ## 1. 경로 비교
 
-| 항목 | A. GitHub 공식 Slack 앱 | B. Cloudflare Worker `/slack` 엔드포인트 (task-5 옵션) |
-|---|---|---|
-| 작업량 | 사용자 UI 조작 ~10분 | 코드 작성 ~30분 + Slack 앱 manifest |
-| 추가 코드 | 0 | Worker ~50줄 + Slack 앱 1개 |
-| 자체 인프라 | 없음 | Cloudflare Worker (task-5 webhook proxy와 동거) |
-| 결과 알림 | GitHub 앱이 워크플로 시작/끝/실패를 채널에 자동 포스팅 | `post-run-actions.ts`의 `notifySlack()` (별도 webhook URL 필요) |
-| 자연어 alias | ❌ (슬래시 명령만) | ⚠️ 별도 NLP/규칙 추가 필요 |
-| 권한 단위 | Slack 워크스페이스 멤버 = GitHub OAuth | Slack signing secret + Worker auth |
-| 추천 | ✅ 지금 즉시 | task-5에서 자체 webhook 처리하면서 같이 |
+| 항목 | A. GitHub 공식 Slack 앱 | A+. Slack Workflow Builder | B. Cloudflare Worker `/slack` (task-5 옵션) |
+|---|---|---|---|
+| 트리거 가능 | ❌ (알림 전용 — 워크플로 dispatch 명령 미지원) | ✅ 버튼/메뉴 → GitHub API 호출 | ✅ 슬래시 커맨드 |
+| 알림 수신 | ✅ workflow / issue / pr 알림 자동 | — | post-run-actions 의 `notifySlack()` (webhook URL) |
+| 작업량 | UI 조작 ~10분 | Slack UI 워크플로 빌더 ~30분 + GitHub PAT 1개 | 코드 ~50줄 + Slack 앱 manifest |
+| 추가 코드 | 0 | 0 (Slack 내장) | Worker 핸들러 |
+| 자체 인프라 | 없음 | 없음 | Cloudflare Worker (task-5 동거) |
+| 자연어 alias | ❌ | ❌ (버튼/단축어로 대체) | ⚠️ 별도 NLP 필요 |
+| 추천 | ✅ 결과 알림용 (이미 적용) | ✅ 수동 트리거 — 코드 없이 가장 빠른 길 | task-5에서 자체 webhook 만들 때 같이 |
 
-**현재 추천**: 경로 A부터 즉시 적용. task-5 진행 시 경로 B를 옵션으로 추가 검토.
+**현재 적용**:
+- **경로 A (알림)**: 이미 채널에 GitHub 앱 + repo 구독 완료. 워크플로/이슈/PR 알림 자동.
+- **수동 트리거 (지금)**: GitHub Actions 페이지 링크를 채널에 핀 고정 → 클릭 → "Run workflow" 버튼. 자세한 절차는 2-3 섹션.
+- **수동 트리거 (개선)**: 경로 A+ (Slack Workflow Builder) 또는 경로 B 중 택일. task-5 진행 시 결정.
+
+### 1-1. 경로 A+ (Slack Workflow Builder) 개요
+
+Slack 워크스페이스의 Workflow Builder로 "버튼 누르면 GitHub API POST" 워크플로를 GUI로 만들 수 있다. 코드 0.
+
+준비물:
+- GitHub fine-grained PAT (scope: `actions:write` for `jhlee9815/uno-home`).
+- Slack workflow 단계:
+  1. **Trigger**: 채널 액션 메뉴 / 단축어 / 이모지 반응
+  2. **HTTP request**: `POST https://api.github.com/repos/jhlee9815/uno-home/actions/workflows/<workflow_id>/dispatches` with `Authorization: Bearer <PAT>` header and JSON body `{"ref":"main","inputs":{"reason":"slack manual"}}`
+  3. **Message**: "트리거 보냈음. 1-3분 후 결과 옴." 응답
+
+장점: 채널에 "🎨 figma 체크" 버튼 한 개를 띄울 수 있음. 디자이너가 1클릭.
+단점: PAT 1개를 Slack 워크플로 secret에 저장해야 함 (Slack에서 관리). 만료 갱신 필요.
+
+이 경로는 task-5 진행 전이라도 바로 가능하다. 다만 GitHub PAT 발급 + Slack 워크플로 1개 셋업이 필요해 "지금 즉시"가 아니라 "오늘 30분".
 
 ## 2. 경로 A — GitHub 공식 Slack 앱 (즉시 가능)
 
@@ -52,19 +71,22 @@ Slack에서 자연어 ("변경된거 확인해줘") 대신 슬래시 명령(`/gi
 - 3행: post-run-actions가 생성한 Issue/PR 알림
 
 ### 2-3. 트리거 명령
-`workflow_dispatch` 트리거를 채널에서 실행:
+> ⚠️ **정정 (2026-05-20)**: GitHub 공식 Slack 앱은 `workflow run` / `workflow dispatch` 슬래시 커맨드를 **지원하지 않는다**. 지원 명령은 subscribe/unsubscribe + 이슈 open/close/reopen + `/github deploy` 정도. 트리거는 GitHub UI 또는 별도 경로 필요.
+
+### 2-3. 수동 트리거 — GitHub UI를 Slack에서 한 클릭으로
+
+채널에 다음 메시지를 보내고 **메시지 고정**(우측 ⋯ → 메시지 고정):
 
 ```
-/github workflow run jhlee9815/uno-home figma-pipeline.yml -r main
+🎨 figma 변경 확인 → https://github.com/jhlee9815/uno-home/actions/workflows/figma-pipeline.yml
 ```
 
-또는 사유 명시:
+사용법:
+1. 채널 상단의 핀(📌) 클릭해서 위 메시지 펼치기
+2. 링크 클릭 → GitHub Actions 페이지 열림
+3. 우측 상단 **Run workflow** 드롭다운 → Branch: `main` → **Run workflow** 버튼
 
-```
-/github workflow run jhlee9815/uno-home figma-pipeline.yml -r main -F reason="slack manual check"
-```
-
-채널 북마크에 위 명령을 박아두면 클릭 → 입력 → 엔터로 1초.
+결과는 Slack에 자동 포스팅 (구독 덕분).
 
 ### 2-4. 결과 흐름
 1. 워크플로 시작: GitHub 앱이 채널에 "🟢 figma-pipeline started by …" 포스팅
@@ -74,9 +96,10 @@ Slack에서 자연어 ("변경된거 확인해줘") 대신 슬래시 명령(`/gi
 
 ### 2-5. 한 줄 사용 예 (디자이너용)
 > "지금 figma 변경된거 확인해줘" 를 채널에서:
-> ```
-> /github workflow run jhlee9815/uno-home figma-pipeline.yml -r main
-> ```
+>
+> 핀된 링크 클릭 → GitHub 페이지 **Run workflow** 버튼 → 1-3분 후 채널에 결과 자동 포스팅.
+>
+> 더 빠른 슬래시 커맨드를 원하면 → **경로 B** (Slack Workflow Builder 또는 Cloudflare Worker).
 
 ## 3. 경로 B — Cloudflare Worker `/slack` 엔드포인트 (task-5 옵션)
 
