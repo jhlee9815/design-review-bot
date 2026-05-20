@@ -135,6 +135,31 @@ npm run figma:claude-review -- --source apple  # Apple 트랙
 - `npm run figma:claude-review` PASS (UNO·Apple 두 리포트 정상 생성)
 - 변경된 UNO DS 토큰: 0건 (격리 성공)
 
+## 7-B. Pesse 디자인 시스템 완성 (slide 8-B, 확장 작업 2026-05-20 오후)
+
+Phase 4 위에 라이브 데모용 Pesse 트랙 추가:
+
+**Figma 측 (Pesse 파일 `9cevQvPHlQ5vZv5Pz3QaLL`)**:
+- 색상 변수 34개 (Apple-strict — primitives 17 + semantic 17)
+- 폰트 family 변수 2개 (display, text)
+- radius 변수 7개
+- **텍스트 스타일 16개** (`apple/display` 56/Bold ~ `apple/nano` 10/Regular)
+- **Icon 컴포넌트 셋 1개 (28 variants)** = UNO Lucide 셋 1:1 (Home, Bell, User, Settings, etc.)
+- 3개 화면 (Home/Cards/Send) 모든 텍스트(67개)와 아이콘(16건)이 토큰/스타일에 연결됨
+
+**React 측 (uno-home/)**:
+- `src/screens/Pesse{Home,Cards,Send}Screen.tsx` 3개 화면
+- `--apple-*` CSS 변수 사용
+- `src/screens/PesseSendScreen.tsx`에 `figma:text id="pesse.send.cta" node="10:62"` 마커 부착 → "Send money" 텍스트 자동 반영 대상
+- 빌드 PASS (1757 modules)
+
+**파이프라인 측**:
+- `npm run figma:register-file`로 Pesse 등록 (UNO 백업 보관)
+- 매핑 5 entries — Pesse Send 화면만 `apply: partial` + `allowedClasses: [text]`
+- baseline `2026-05-20T02-09-13.json` + 3 screenshot baselines
+
+**데모 시연**: Figma에서 "Send money" 텍스트 한 단어 수정 → `npm run figma:run` → 5초 만에 React 코드 자동 패치 + build/lint PASS + cs-{id}.md 자동 생성.
+
 ---
 
 ## 8. 페이지별 리포트 (slide 9)

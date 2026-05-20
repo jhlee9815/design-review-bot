@@ -17,6 +17,9 @@ dist-ssr
 .env
 .env.local
 .env.*.local
+.env.backup
+.env.*.backup
+*.env.backup
 
 # Pipeline artifacts (local only)
 .automation/snapshots/
@@ -25,7 +28,11 @@ dist-ssr
 .automation/logs/
 .automation/baseline/
 .automation/backups/
+.automation/demo-compare/
 !.automation/**/.gitkeep
+
+# Codex session state (local only)
+.context/
 
 # Editor directories and files
 .vscode/*
