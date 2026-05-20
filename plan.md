@@ -95,7 +95,7 @@
 - 새 파일 4개: `.github/CODEOWNERS`, `.github/PULL_REQUEST_TEMPLATE.md`, `.github/ISSUE_TEMPLATE/designer-review.md`, `.github/labels.yml`.
 - 라벨 색상/설명 표준화: GitHub API PATCH ×4 (`designer-bot` #ff8c00, `auto-apply` #0e8a16, `designer-review` #1d76db, `report-only` #fbca04). HTTP 200 ×4.
 - Branch protection rule(`require_code_owner_reviews:true`) 적용은 task-5 이후로 분리 (외부 webhook 들어올 때 의미).
-- Slack 자연어 트리거 가능성: GitHub 공식 Slack 앱(`/github workflow run jhlee9815/uno-home figma-pipeline.yml -r main`)으로 즉시 가능. Cloudflare Worker 기반 자체 슬래시 커맨드는 task-5 옵션.
+- Slack 자연어 트리거 가능성: GitHub 공식 Slack 앱(`/github workflow run jhlee9815/uno-home figma-pipeline.yml -r main`)으로 즉시 가능. Cloudflare Worker 기반 자체 슬래시 커맨드는 task-5 옵션. 세부: [`project-plan/phase-6/slack-integration.md`](./project-plan/phase-6/slack-integration.md).
 
 ### 활성 GitHub 리소스
 - Repo: https://github.com/jhlee9815/uno-home (private)

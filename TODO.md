@@ -39,7 +39,7 @@ npx tsc --noEmit
 
 - 필요: Cloudflare 계정, `wrangler` CLI, GitHub fine-grained PAT (workflow trigger 권한), Figma webhook passcode.
 - 목표: Figma 파일 편집 → Figma webhook → Cloudflare Worker → GitHub `repository_dispatch` → workflow `figma-pipeline.yml` 자동 트리거.
-- 부수 옵션: 같은 Worker에 `/slack` 엔드포인트 추가하면 Slack 슬래시 커맨드로도 트리거 가능. (없어도 GitHub 공식 Slack 앱으로 트리거 가능)
+- 부수 옵션: 같은 Worker에 `/slack` 엔드포인트 추가하면 Slack 슬래시 커맨드로도 트리거 가능. (없어도 GitHub 공식 Slack 앱으로 트리거 가능, [`project-plan/phase-6/slack-integration.md`](./project-plan/phase-6/slack-integration.md) 참조)
 - task-5 끝나면 branch protection rule `require_code_owner_reviews: true` 활성화 — 외부 webhook이 자동 PR을 만들기 시작할 때부터 의미 있음.
 
 ---
@@ -100,6 +100,7 @@ npx tsc --noEmit
 | Phase 6 계획 | [project-plan/phase-6/phase-plan-6.md](./project-plan/phase-6/phase-plan-6.md) |
 | task-3 완료 기록 | [project-plan/phase-6/task-3-post-run-actions.md](./project-plan/phase-6/task-3-post-run-actions.md) |
 | task-4 완료 기록 | [project-plan/phase-6/task-4-codeowners-governance.md](./project-plan/phase-6/task-4-codeowners-governance.md) |
+| Slack 통합 가이드 | [project-plan/phase-6/slack-integration.md](./project-plan/phase-6/slack-integration.md) |
 | task-7 완료 기록 | [project-plan/phase-6/task-7-bugfixes.md](./project-plan/phase-6/task-7-bugfixes.md) |
 | Phase 7 canonical 계획 | [project-plan/phase-7/phase-plan-7.md](./project-plan/phase-7/phase-plan-7.md) |
 | Phase 7 quick handoff | [project-plan/phase-7/plan-7.md](./project-plan/phase-7/plan-7.md) |

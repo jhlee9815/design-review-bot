@@ -147,7 +147,7 @@ Phase 7로 넘어가려면:
 - task-1/2/3/4/7 **완료** ✅. task-3 V1~V4 실검증 + task-4 거버넌스 파일/라벨 표준화 통과.
 - 다음 우선순위: **task-5 Cloudflare Worker Figma webhook 프록시**. Cloudflare 계정 + wrangler login 필요.
 - 그 뒤: task-6 (Resend 이메일).
-- task-5와 함께 처리할 부수 항목: (a) branch protection rule `require_code_owner_reviews:true` 활성화, (b) `/slack` 엔드포인트로 GitHub workflow trigger 가능하게 (사용자 옵션 — 현 단계는 Slack 공식 GitHub 앱으로 대체 가능).
+- task-5와 함께 처리할 부수 항목: (a) branch protection rule `require_code_owner_reviews:true` 활성화, (b) `/slack` 엔드포인트로 자체 슬래시 커맨드 (옵션 — [`slack-integration.md`](./slack-integration.md) 경로 B). 기본 Slack 알림/트리거는 경로 A (GitHub 공식 Slack 앱)로 즉시 가능.
 
 검증 증거 (최신 — uncommitted 상태 그대로):
 

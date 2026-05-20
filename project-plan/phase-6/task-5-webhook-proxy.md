@@ -1,9 +1,10 @@
 # Task 6-5 — Cloudflare Worker: Figma Webhook → GitHub Dispatch
 
 > **목표**: Figma `FILE_UPDATE` webhook을 받아 GitHub repository_dispatch 호출
-> **예상 시간**: 1~2시간
+> **예상 시간**: 1~2시간 (옵션 `/slack` 엔드포인트 추가 시 +30분)
 > **선행**: task-2 (workflow가 `repository_dispatch: [figma-file-update]` 받음)
-> **블록 해제**: 없음
+> **블록 해제**: branch protection rule 적용 (외부 webhook 들어오기 시작하는 시점)
+> **관련**: [`slack-integration.md`](./slack-integration.md) — 경로 B(`/slack` 엔드포인트)를 본 task에 합칠지 분리할지 결정.
 
 ## 설계 의도
 
