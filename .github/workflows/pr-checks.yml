@@ -1,0 +1,36 @@
+name: pr-checks
+
+on:
+  pull_request:
+    branches: [main]
+
+concurrency:
+  group: pr-checks-${{ github.head_ref || github.run_id }}
+  cancel-in-progress: true
+
+jobs:
+  validate:
+    name: validate
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    permissions:
+      contents: read
+    env:
+      FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: 'true'
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+      - run: npm ci
+      - run: npm run lint
+      - run: npm run build
+      - name: figma:preflight
+        run: |
+          echo "FIGMA_TOKEN=${FIGMA_TOKEN}" > .env
+          chmod 600 .env
+          npm run figma:preflight
+          rm -f .env
+        env:
+          FIGMA_TOKEN: ${{ secrets.FIGMA_TOKEN }}
