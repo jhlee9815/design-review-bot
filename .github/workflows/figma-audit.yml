@@ -24,6 +24,7 @@ jobs:
       contents: write          # push auto-register branch
       pull-requests: write     # open auto-register PR
       issues: write            # audit Issue
+      actions: write           # dispatch pr-checks for the auto-register PR
     env:
       FIGMA_TOKEN: ${{ secrets.FIGMA_TOKEN }}
       FIGMA_FILE_KEY: ${{ vars.FIGMA_FILE_KEY }}
@@ -150,7 +151,9 @@ jobs:
           # exposes a workflow_dispatch trigger so we can fire `validate`
           # against this head branch explicitly. The resulting check report
           # against the PR's head SHA satisfies the required-status-check gate.
-          gh workflow run pr-checks.yml --ref "$BRANCH" || true
+          # No `|| true`: if dispatch fails, the PR would sit ungated, so fail
+          # loud (e.g. missing `actions: write` permission, malformed branch).
+          gh workflow run pr-checks.yml --ref "$BRANCH"
 
       - name: Step summary
         if: always()
