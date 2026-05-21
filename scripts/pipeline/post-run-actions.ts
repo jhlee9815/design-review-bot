@@ -6,13 +6,14 @@
  *   - auto-apply changes  -> Draft PR (label: designer-bot, auto-apply)
  *   - report-only changes -> Issue   (label: designer-review, report-only)
  *   - notification        -> Slack / Discord webhook (when env set)
- *   - email digest        -> Resend (task-6 wires this in)
  *
  * Behavior:
  *   - Graceful no-op when channel env vars are missing.
  *   - DRY_RUN=1 logs every external call but does not perform it.
  *   - Reuses the per-cs branch name so repeat runs update the existing PR
  *     instead of opening duplicates.
+ *   - Issue and PR creation run sequentially so manifest mutations
+ *     (githubIssueNumber/Url) do not race on the same file.
  */
 
 import { readFileSync, existsSync } from 'node:fs';
@@ -280,10 +281,8 @@ async function createOrUpdatePR(): Promise<{ url?: string }> {
 
 (async () => {
   try {
-    const [issueRes, prRes] = await Promise.all([
-      createOrUpdateIssue(),
-      createOrUpdatePR(),
-    ]);
+    const issueRes = await createOrUpdateIssue();
+    const prRes = await createOrUpdatePR();
     await notifySlack();
     await notifyDiscord();
     console.log('[post-run] done');

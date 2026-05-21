@@ -25,7 +25,7 @@
 - [ ] Figma webhook → Cloudflare Worker → GitHub `repository_dispatch` → 워크플로 실행 동작
 - [ ] auto-apply 변경 시 Draft PR이 `designer-bot` 라벨로 자동 생성 + CODEOWNERS가 dev 리뷰 강제
 - [ ] report-only 변경 시 Issue가 `designer-review` 라벨로 자동 등록
-- [ ] Slack/Discord webhook 알림 + Resend 이메일 동시 발송
+- [x] Slack/Discord webhook 알림 (Resend 이메일은 task-6 SKIPPED — Slack 도달로 충분)
 - [x] Codex가 발견한 `promote-dev.ts` 스모크 키 버그 수정
 - [x] **extraction-friendly 결정 4건 적용**: 6-4 참조
 
