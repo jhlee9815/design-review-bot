@@ -153,18 +153,28 @@ jobs:
       - name: Persist CS manifest
         if: github.ref == 'refs/heads/main' && steps.pipeline.outputs.cs_id != '' && hashFiles('.automation/cs/*.json') != ''
         run: |
-          if git diff --quiet -- .automation/cs; then
+          # Status check includes untracked files; new cs manifests are
+          # untracked json and `git diff --quiet` would miss them.
+          if [ -z "$(git status --porcelain -- .automation/cs)" ]; then
             echo "No CS manifest change to commit"
             exit 0
           fi
           # post-run-actions may have left HEAD on designer-bot/<csId>.
           # Move manifest changes aside, switch to main, then reapply so
           # the commit lands on main only (never on the auto-apply PR branch).
-          git stash push -u -m "manifest-persist" -- .automation/cs/ || true
+          # `-u` includes untracked files so new cs json files are preserved.
+          if ! git stash push -u -m "manifest-persist" -- .automation/cs/; then
+            echo "stash push failed; aborting to avoid losing manifest delta"
+            exit 1
+          fi
           git fetch origin main
           git checkout main
           git reset --hard origin/main
-          git stash pop || true
+          if ! git stash pop; then
+            echo "stash pop failed; manifest delta still on stash. Aborting."
+            git stash list
+            exit 1
+          fi
           git config user.name "designer-bot"
           git config user.email "designer-bot@users.noreply.github.com"
           git add .automation/cs
