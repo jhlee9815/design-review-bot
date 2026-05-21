@@ -64,12 +64,11 @@ export function buildYamlEntry(c: Candidate, today: string): string {
 }
 
 function yamlScalar(value: string): string {
-  // YAML 1.1 flow scalars: quote when the value contains special chars or
-  // could be parsed as something other than a string.
-  if (/[:#&*!|>%@`{}[\],]/.test(value) || /^[-?]/.test(value)) {
-    return JSON.stringify(value);
-  }
-  return value;
+  // Always emit Figma names as JSON-quoted YAML scalars. Frame names are
+  // user-controlled in Figma — leaving them as bare scalars makes "true",
+  // "123", "null", or "" parse as booleans/numbers/null instead of strings.
+  // JSON.stringify is YAML 1.2 compatible for string scalars.
+  return JSON.stringify(value);
 }
 
 function main(): void {
@@ -143,6 +142,7 @@ function surfaceOutput(registered: Candidate[], skipped: string[]): void {
     `skipped_count=${skipped.length}`,
     `registered_ids=${registered.map(c => c.nodeId).join(',')}`,
     `registered_names=${registered.map(c => c.name).join(' | ')}`,
+    `mapping_path=${MAPPING_PATH}`,
   ].join('\n');
   try {
     const cur = existsSync(process.env.GITHUB_OUTPUT) ? readFileSync(process.env.GITHUB_OUTPUT, 'utf-8') : '';

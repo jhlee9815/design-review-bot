@@ -72,6 +72,7 @@ jobs:
           REGISTERED_NAMES: ${{ steps.register.outputs.registered_names }}
           REGISTERED_IDS: ${{ steps.register.outputs.registered_ids }}
           REGISTERED_COUNT: ${{ steps.register.outputs.registered_count }}
+          MAPPING_PATH: ${{ steps.register.outputs.mapping_path }}
           RUN_URL: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
         run: |
           set -e
@@ -98,12 +99,12 @@ jobs:
           # force-update it. Otherwise create fresh.
           if git ls-remote --exit-code --heads origin "$BRANCH" >/dev/null 2>&1; then
             git checkout -B "$BRANCH"
-            git add config/figma-mapping.yaml
+            git add "${MAPPING_PATH:-config/figma-mapping.yaml}"
             git commit -m "chore(audit): refresh auto-register $(date -u +%Y-%m-%dT%H:%M:%SZ)" || echo "no changes"
             git push -f origin "$BRANCH"
           else
             git checkout -b "$BRANCH"
-            git add config/figma-mapping.yaml
+            git add "${MAPPING_PATH:-config/figma-mapping.yaml}"
             git commit -m "chore(audit): auto-register ${REGISTERED_COUNT} frame(s)"
             git push origin "$BRANCH"
           fi

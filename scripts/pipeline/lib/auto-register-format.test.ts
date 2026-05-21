@@ -76,4 +76,28 @@ import { generateMappingKey, buildYamlEntry } from '../auto-register.ts';
   assert.equal(e.figmaNodeName, 'Phone · My Account');
 }
 
+// YAML poison names — frame names users could plausibly type that would
+// be re-typed by an unquoted YAML serializer.
+{
+  const cases: Array<[string, string]> = [
+    ['true', 'true'],
+    ['123', '123'],
+    ['null', 'null'],
+    ['yes', 'yes'],
+    ['', ''],
+    ['1.5', '1.5'],
+  ];
+  for (const [input, expected] of cases) {
+    const entry = buildYamlEntry({
+      nodeId: '88:88', name: input,
+      firstSeenAt: '', lastSeenAt: '', sightingCount: 2,
+    }, '2026-05-22');
+    const parsed = yaml.load(`screens:\n${entry}`) as { screens: Record<string, unknown> };
+    const key = Object.keys(parsed.screens)[0];
+    const e = parsed.screens[key] as Record<string, unknown>;
+    assert.equal(typeof e.figmaNodeName, 'string', `name "${input}" should stay a string`);
+    assert.equal(e.figmaNodeName, expected, `name "${input}" should round-trip exactly`);
+  }
+}
+
 console.log('auto-register-format tests passed');
