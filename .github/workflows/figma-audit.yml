@@ -117,12 +117,14 @@ jobs:
             echo ""
             echo "**Registered:**"
             echo ""
+            # IDs are comma-separated, names are pipe-separated. The script
+            # emits them tightly packed (no whitespace around delimiters), so
+            # piping through xargs would crash on apostrophes/quotes in
+            # user-controlled Figma frame names. Read straight.
             IFS=',' read -ra IDS <<< "${REGISTERED_IDS}"
             IFS='|' read -ra NAMES <<< "${REGISTERED_NAMES}"
             for i in "${!IDS[@]}"; do
-              ID_TRIM=$(echo "${IDS[$i]}" | xargs)
-              NAME_TRIM=$(echo "${NAMES[$i]:-}" | xargs)
-              echo "- \`${ID_TRIM}\` — ${NAME_TRIM}"
+              echo "- \`${IDS[$i]}\` — ${NAMES[$i]:-}"
             done
             echo ""
             echo "**Why a PR (not direct push):** main is protected; the \`validate\` check on this PR must pass before merge. Once it does, you can merge and detection extends automatically."

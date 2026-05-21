@@ -141,7 +141,7 @@ function surfaceOutput(registered: Candidate[], skipped: string[]): void {
     `registered_count=${registered.length}`,
     `skipped_count=${skipped.length}`,
     `registered_ids=${registered.map(c => c.nodeId).join(',')}`,
-    `registered_names=${registered.map(c => c.name).join(' | ')}`,
+    `registered_names=${registered.map(c => c.name).join('|')}`,
     `mapping_path=${MAPPING_PATH}`,
   ].join('\n');
   try {
