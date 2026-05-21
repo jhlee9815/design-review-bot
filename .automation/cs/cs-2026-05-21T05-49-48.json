@@ -1,0 +1,42 @@
+{
+  "csId": "cs-2026-05-21T05-49-48",
+  "createdAt": "2026-05-21T05:49:58.891Z",
+  "fileKey": "9cevQvPHlQ5vZv5Pz3QaLL",
+  "baseSnapshotPath": "/home/runner/work/uno-home/uno-home/.automation/baseline/2026-05-20T02-09-13.json",
+  "headSnapshotPath": "/home/runner/work/uno-home/uno-home/.automation/snapshots/2026-05-21T05-49-47.json",
+  "classifiedDiffPath": "/home/runner/work/uno-home/uno-home/.automation/diffs/2026-05-21T05-49-48-classified.json",
+  "reportPath": "/home/runner/work/uno-home/uno-home/.automation/reports/cs-2026-05-21T05-49-48.md",
+  "classifiedDiffSha256": "sha256:f1ecbf59679e9e7861640c382c1ed5dff8241441f299c65226d65c6a25b21f26",
+  "headSnapshotSha256": "sha256:5997cea593f3733b035566237c5f5626f88b86710c7dd11f09b3d1571856ba6a",
+  "imageRefs": {
+    "7:2": {
+      "before": null,
+      "after": "sha256:a4de89fabb9ce0049f5a49cd22edd60ba4c86c276d69eb4b3161d2892e53cb1a"
+    },
+    "7:4": {
+      "before": null,
+      "after": "sha256:19634158d9d0283df55b7491181fb4716e23195c57383927d1961a5c49d10ced"
+    },
+    "7:3": {
+      "before": null,
+      "after": "sha256:f5147bff118eabe5ee71184bf6c5852c8fd933c70ce8851cec51384b0a67907c"
+    },
+    "7:5": {
+      "before": null,
+      "after": "sha256:28f1977efaaa2a92f7e7cb706dfda2ebf2c8eedbd218b97cb8c57da8a945ef3c"
+    }
+  },
+  "runId": "26208056945",
+  "state": "pending",
+  "stateHistory": [
+    {
+      "state": "pending",
+      "at": "2026-05-21T05:49:58.891Z",
+      "by": "jhlee9815",
+      "via": "report-generation"
+    }
+  ],
+  "viewerUrl": "https://jhlee9815.github.io/uno-home/cs/cs-2026-05-21T05-49-48/",
+  "githubIssueNumber": 15,
+  "githubIssueUrl": "https://github.com/jhlee9815/uno-home/issues/15"
+}
