@@ -32,6 +32,7 @@ dist-ssr
 .automation/task-8-stage0/
 .automation/viewer/
 .automation/images/snapshots/
+.automation/audits/
 
 # Tracked pipeline state
 !.automation/cs/

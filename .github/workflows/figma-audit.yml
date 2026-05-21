@@ -1,0 +1,120 @@
+name: figma-audit
+
+on:
+  schedule:
+    # Monday 00:00 UTC = 09:00 KST (weekly DS health check)
+    - cron: '0 0 * * 1'
+  workflow_dispatch:
+    inputs:
+      reason:
+        description: 'Manual trigger reason'
+        required: false
+        default: 'manual'
+
+concurrency:
+  group: figma-audit-${{ github.ref }}
+  cancel-in-progress: false
+
+jobs:
+  audit:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    permissions:
+      contents: read
+      issues: write
+    env:
+      FIGMA_TOKEN: ${{ secrets.FIGMA_TOKEN }}
+      FIGMA_FILE_KEY: ${{ vars.FIGMA_FILE_KEY }}
+      FIGMA_CONFIG_DIR: ${{ vars.FIGMA_CONFIG_DIR }}
+      FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: 'true'
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+      - run: npm ci
+      - name: Write .env from secrets
+        run: |
+          echo "FIGMA_TOKEN=${FIGMA_TOKEN}" > .env
+          chmod 600 .env
+      - name: Run figma:audit
+        id: audit
+        run: npm run figma:audit
+      - name: Cleanup .env
+        if: always()
+        run: rm -f .env
+      - name: Step summary
+        if: always()
+        run: |
+          {
+            echo "## figma-audit summary"
+            echo ""
+            echo "- detached styles: \`${{ steps.audit.outputs.detached_total }}\`"
+            echo "- unregistered top-level frames: \`${{ steps.audit.outputs.unregistered_total }}\`"
+            echo "- has violations: \`${{ steps.audit.outputs.has_violations }}\`"
+            if [ -f "${{ steps.audit.outputs.audit_md }}" ]; then
+              echo ""
+              echo "### Audit report (first 60 lines)"
+              echo ""
+              echo '```markdown'
+              head -60 "${{ steps.audit.outputs.audit_md }}" || true
+              echo '```'
+            fi
+          } >> "$GITHUB_STEP_SUMMARY"
+      - name: Create audit Issue when violations detected
+        if: steps.audit.outputs.has_violations == 'true'
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          DETACHED: ${{ steps.audit.outputs.detached_total }}
+          UNREG: ${{ steps.audit.outputs.unregistered_total }}
+          AUDIT_MD: ${{ steps.audit.outputs.audit_md }}
+          RUN_URL: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
+        run: |
+          set -e
+          DATE=$(date -u +%Y-%m-%d)
+          TITLE="[audit] ${DATE} — ${DETACHED} detached styles, ${UNREG} unregistered frames"
+
+          # Capture top of the markdown report for the Issue body
+          if [ -f "$AUDIT_MD" ]; then
+            REPORT_HEAD=$(head -80 "$AUDIT_MD")
+          else
+            REPORT_HEAD="(report file missing)"
+          fi
+
+          BODY_FILE=$(mktemp)
+          {
+            echo "Weekly Figma DS audit found violations."
+            echo ""
+            echo "- Detached styles: **${DETACHED}**"
+            echo "- Unregistered top-level frames: **${UNREG}**"
+            echo ""
+            echo "Workflow run: ${RUN_URL}"
+            echo "Full report attached as artifact \`figma-audit-${{ github.run_id }}\` (.automation/audits/audit-*.md)."
+            echo ""
+            echo "---"
+            echo ""
+            echo "<details><summary>Top of audit report</summary>"
+            echo ""
+            echo "$REPORT_HEAD"
+            echo ""
+            echo "</details>"
+            echo ""
+            echo "_Created by \`figma-audit\` workflow._"
+          } > "$BODY_FILE"
+
+          # Close any existing open audit issues to keep one rolling reminder
+          OPEN=$(gh issue list --label audit --state open --json number --jq '.[].number' || true)
+          for N in $OPEN; do
+            gh issue close "$N" --comment "Superseded by latest audit run (${RUN_URL})." || true
+          done
+
+          gh issue create --title "$TITLE" --label audit --body-file "$BODY_FILE"
+      - name: Upload audit artifact
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: figma-audit-${{ github.run_id }}
+          path: .automation/audits/
+          retention-days: 90
+          if-no-files-found: ignore
