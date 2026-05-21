@@ -6,6 +6,12 @@ pathResolution:
   base: config-dir
   description: All relative paths in this file are resolved from the directory containing this config file.
 
+# Audit overrides — excludes intentional reference frames from `npm run figma:audit`.
+# 22:129 is the Lucide icon library; treating it as a violation is a false positive.
+audit:
+  excludeNodeIds:
+    - "22:129"  # Icon library (Lucide variant set)
+
 # Tokens — report-only for Pesse demo (no auto-token-apply target yet)
 tokens:
   source:
@@ -21,7 +27,9 @@ components: {}
 compositions: {}
 
 screens:
-  # Codex's earlier preview frame — tracking only
+  # Codex's earlier preview frame — tracking only.
+  # Audit skipped because the page is a hand-authored DS reference where
+  # raw hex/font values are intentional (not a token-binding violation).
   figma_appleInspiredDesignSystemGeneratedPreview_2_2:
     figmaNodeId: "2:2"
     figmaNodeName: Apple-inspired Design System / Generated Preview
@@ -31,6 +39,7 @@ screens:
     targetType: screen
     automation:
       apply: report-only
+      audit: skip
       allowedClasses:
         - token
         - text

@@ -76,6 +76,22 @@ import type { FigmaMapping } from './config-loader.ts';
 }
 
 {
+  // audit.excludeNodeIds excludes Icon library even if unregistered
+  const pageFrames: TopLevelFrameRef[] = [
+    { id: '2:2', name: 'Apple-inspired DS' },
+    { id: '22:129', name: 'Icon' },
+    { id: '35:244', name: 'test1' },
+  ];
+  const mapping: FigmaMapping = {
+    ...makeMappingWithRegisteredIds(['2:2']),
+    audit: { excludeNodeIds: ['22:129'] },
+  };
+  const unregistered = findUnregisteredTopLevelFrames(pageFrames, mapping);
+  const unregisteredIds = unregistered.map(f => f.nodeId).sort();
+  assert.deepEqual(unregisteredIds, ['35:244']);
+}
+
+{
   // empty registered → all unregistered
   const pageFrames: TopLevelFrameRef[] = [{ id: 'x:1', name: 'X' }];
   const mapping: FigmaMapping = makeMappingWithRegisteredIds([]);
@@ -112,6 +128,7 @@ import type { FigmaMapping } from './config-loader.ts';
   assert.equal(report.byRegisteredRoot.length, 2);
   assert.equal(report.hasViolations, true);
   assert.equal(report.unregisteredTopLevelFrames[0].name, 'Stray frame');
+  assert.deepEqual(report.skippedRoots, []);
 
   // no violations case
   const cleanReport = buildAuditReport({
@@ -128,6 +145,39 @@ import type { FigmaMapping } from './config-loader.ts';
   assert.ok(md.includes('Audit Report'));
   assert.ok(md.includes('Stray frame'));
   assert.ok(md.includes('Home'));
+}
+
+{
+  // automation.audit: skip excludes the entry from the report total
+  const snapshotNodes: Record<string, SnapshotNodeEntry> = {
+    pesse_home: makeSnapshotNode('7:3', 'Home', 5, 0, 0),
+    ds_preview: makeSnapshotNode('2:2', 'DS Preview', 50, 0, 0),
+  };
+  const mapping = makeMappingWithRegisteredIds(['7:3', '2:2']);
+  // mark ds_preview as skip
+  mapping.screens['key_2_2'].automation.audit = 'skip';
+  // rename screens to match keys we pass in snapshotNodes
+  mapping.screens.pesse_home = mapping.screens.key_7_3;
+  delete mapping.screens.key_7_3;
+  mapping.screens.ds_preview = mapping.screens.key_2_2;
+  delete mapping.screens.key_2_2;
+
+  const report = buildAuditReport({
+    fileKey: 'file-key',
+    snapshotNodes,
+    mapping,
+    topLevelFrames: [],
+    generatedAt: '2026-05-21T13:30:00Z',
+  });
+
+  assert.equal(report.totalDetachedStyles, 5, 'should exclude DS preview from total');
+  assert.equal(report.byRegisteredRoot.length, 1);
+  assert.equal(report.byRegisteredRoot[0].key, 'pesse_home');
+  assert.equal(report.skippedRoots.length, 1);
+  assert.equal(report.skippedRoots[0].key, 'ds_preview');
+  assert.equal(report.skippedRoots[0].skippedDetachedStyles, 50);
+  const md = renderAuditMarkdown(report);
+  assert.ok(md.includes('Skipped roots'), 'markdown should mention skipped roots');
 }
 
 console.log('audit-aggregator tests passed');

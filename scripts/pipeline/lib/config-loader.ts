@@ -29,6 +29,8 @@ export interface FigmaConfig {
   };
 }
 
+export type AuditMode = 'skip' | 'include';
+
 export interface MappingEntry {
   figmaFileKey?: string | null;
   figmaNodeId: string | null;
@@ -39,6 +41,10 @@ export interface MappingEntry {
   automation: {
     apply: string;
     allowedClasses?: string[];
+    // 'skip' excludes the entry from `npm run figma:audit` output.
+    // Use for intentional reference frames (e.g. Codex-generated DS preview)
+    // that shouldn't be flagged for detached styles.
+    audit?: AuditMode;
   };
 }
 
@@ -56,6 +62,11 @@ export interface FigmaMapping {
     source: { file: string };
     output: { css: string };
     automation: { classes: string[]; apply: string };
+  };
+  // Top-level audit overrides for nodes that aren't registered as mapping
+  // entries (e.g. icon libraries living next to tracked screens).
+  audit?: {
+    excludeNodeIds?: string[];
   };
   components: Record<string, MappingEntry>;
   compositions: Record<string, MappingEntry>;

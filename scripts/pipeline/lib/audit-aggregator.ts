@@ -36,6 +36,13 @@ export interface UnregisteredTopLevelFrame {
   name: string;
 }
 
+export interface SkippedRootAudit {
+  key: string;
+  nodeId: string;
+  nodeName: string;
+  skippedDetachedStyles: number;
+}
+
 export interface AuditReport {
   generatedAt: string;
   fileKey: string;
@@ -45,6 +52,7 @@ export interface AuditReport {
   hasViolations: boolean;
   byRegisteredRoot: RegisteredRootAudit[];
   unregisteredTopLevelFrames: UnregisteredTopLevelFrame[];
+  skippedRoots: SkippedRootAudit[];
 }
 
 export interface BuildAuditReportInput {
@@ -87,8 +95,9 @@ export function findUnregisteredTopLevelFrames(
   mapping: FigmaMapping
 ): UnregisteredTopLevelFrame[] {
   const registeredIds = collectRegisteredNodeIds(mapping);
+  const excludedIds = new Set(mapping.audit?.excludeNodeIds ?? []);
   return pageFrames
-    .filter(f => !registeredIds.has(f.id))
+    .filter(f => !registeredIds.has(f.id) && !excludedIds.has(f.id))
     .map(f => ({ nodeId: f.id, name: f.name }));
 }
 
@@ -96,11 +105,22 @@ export function buildAuditReport(input: BuildAuditReportInput): AuditReport {
   const { fileKey, snapshotNodes, mapping, topLevelFrames, generatedAt } = input;
 
   const registeredEntries = collectRegisteredEntries(mapping);
+  const skippedKeys = collectAuditSkippedKeys(mapping);
 
   const byRegisteredRoot: RegisteredRootAudit[] = [];
+  const skippedRoots: SkippedRootAudit[] = [];
   let totalDetached = 0;
 
   for (const [key, entry] of Object.entries(snapshotNodes)) {
+    if (skippedKeys.has(key)) {
+      skippedRoots.push({
+        key,
+        nodeId: entry.id,
+        nodeName: entry.name,
+        skippedDetachedStyles: (entry.detachedStyles ?? []).length,
+      });
+      continue;
+    }
     const summary = aggregateDetachedStyles(entry.detachedStyles ?? []);
     totalDetached += summary.total;
     byRegisteredRoot.push({
@@ -112,7 +132,6 @@ export function buildAuditReport(input: BuildAuditReportInput): AuditReport {
       assetRefCount: (entry.assetRefs ?? []).length,
     });
   }
-  // Stable sort by detached style count desc
   byRegisteredRoot.sort((a, b) => b.detachedStyles.total - a.detachedStyles.total);
 
   const unregisteredTopLevelFrames = findUnregisteredTopLevelFrames(topLevelFrames, mapping);
@@ -128,6 +147,7 @@ export function buildAuditReport(input: BuildAuditReportInput): AuditReport {
     hasViolations,
     byRegisteredRoot,
     unregisteredTopLevelFrames,
+    skippedRoots,
   };
 }
 
@@ -140,6 +160,10 @@ export function renderAuditMarkdown(report: AuditReport): string {
   lines.push(`- Registered roots: ${report.totalRegisteredRoots}`);
   lines.push(`- Total detached styles: **${report.totalDetachedStyles}**`);
   lines.push(`- Unregistered top-level frames: **${report.totalUnregisteredTopLevelFrames}**`);
+  if (report.skippedRoots.length > 0) {
+    const skippedTotal = report.skippedRoots.reduce((sum, r) => sum + r.skippedDetachedStyles, 0);
+    lines.push(`- Skipped roots (audit: skip): ${report.skippedRoots.length} (excluded ${skippedTotal} detached entries)`);
+  }
   lines.push('');
 
   if (!report.hasViolations) {
@@ -212,4 +236,19 @@ function collectRegisteredEntries(mapping: FigmaMapping): Map<string, { figmaNod
   for (const [k, v] of Object.entries(mapping.compositions)) all.set(k, v);
   for (const [k, v] of Object.entries(mapping.screens)) all.set(k, v);
   return all;
+}
+
+function collectAuditSkippedKeys(mapping: FigmaMapping): Set<string> {
+  const skipped = new Set<string>();
+  const buckets: Array<Record<string, { automation?: { audit?: string } }>> = [
+    mapping.components,
+    mapping.compositions,
+    mapping.screens,
+  ];
+  for (const bucket of buckets) {
+    for (const [k, v] of Object.entries(bucket)) {
+      if (v?.automation?.audit === 'skip') skipped.add(k);
+    }
+  }
+  return skipped;
 }
