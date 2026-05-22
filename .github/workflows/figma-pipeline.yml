@@ -11,6 +11,13 @@ on:
         description: 'Manual trigger reason'
         required: false
         default: 'manual'
+  # Daily audit → pipeline cascade. When figma-audit completes successfully,
+  # automatically run the pipeline so the designer gets one combined daily
+  # alert in Slack covering both compliance (audit) and diff (pipeline).
+  workflow_run:
+    workflows: ['figma-audit']
+    types: [completed]
+    branches: [main]
 
 concurrency:
   group: cs-main-writer-${{ github.ref }}
@@ -18,6 +25,10 @@ concurrency:
 
 jobs:
   figma-pipeline:
+    # When triggered as a cascade from figma-audit, skip the run if audit
+    # didn't succeed — a failed audit means we have no useful audit context
+    # to surface in the unified Slack alert and may be missing inputs.
+    if: github.event_name != 'workflow_run' || github.event.workflow_run.conclusion == 'success'
     runs-on: ubuntu-latest
     timeout-minutes: 15
     permissions:

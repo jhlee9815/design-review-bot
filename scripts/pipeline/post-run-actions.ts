@@ -22,6 +22,8 @@ import { execSync } from 'node:child_process';
 import { Octokit } from 'octokit';
 import { loadManifest, updateManifest } from './lib/cs-manifest.ts';
 import { createOrUpdateDesignerPr, selectPathsForPrBranch } from './lib/github-pr.ts';
+import { CATEGORY_EMOJI, CATEGORY_LABEL_KO } from './lib/category-labels.ts';
+import type { ComplianceSubcategory } from './lib/compliance-types.ts';
 
 const csId = process.argv[2];
 if (!csId) {
@@ -163,24 +165,82 @@ function updateManifestIssue(id: string, issueNumber: number, issueUrl: string):
 
 // ----- notify channels -----
 
+// Count how many of each Korean-labelled category appear in this change set.
+// `classified.changes[i].classes[]` may carry multiple tags per change
+// (e.g. ['detached-style', 'new-frame']) — we increment each category it
+// belongs to so the Slack summary reflects total occurrences, not changes.
+function categoryCounts(): Partial<Record<ComplianceSubcategory, number>> {
+  const counts: Partial<Record<ComplianceSubcategory, number>> = {};
+  for (const change of classified.changes) {
+    for (const raw of change.classes) {
+      if (raw in CATEGORY_LABEL_KO) {
+        const k = raw as ComplianceSubcategory;
+        counts[k] = (counts[k] ?? 0) + 1;
+      }
+    }
+  }
+  return counts;
+}
+
+async function fetchAuditContext(): Promise<{ issueLink?: string; prLink?: string }> {
+  if (!octokit) return {};
+  const out: { issueLink?: string; prLink?: string } = {};
+  try {
+    const { data: issues } = await octokit.rest.issues.listForRepo({
+      owner, repo, state: 'open', labels: 'audit', per_page: 1, sort: 'created', direction: 'desc',
+    });
+    if (issues[0]) out.issueLink = `<${issues[0].html_url}|Issue #${issues[0].number}>`;
+  } catch {/* best-effort */}
+  try {
+    const { data: prs } = await octokit.rest.pulls.list({
+      owner, repo, state: 'open', per_page: 5, sort: 'created', direction: 'desc',
+    });
+    const autoRegister = prs.find(p => p.labels.some(l => l.name === 'auto-register'));
+    if (autoRegister) out.prLink = `<${autoRegister.html_url}|PR #${autoRegister.number}>`;
+  } catch {/* best-effort */}
+  return out;
+}
+
+function buildLocalizedSummary(): string[] {
+  const lines: string[] = [];
+  const counts = categoryCounts();
+  if (Object.keys(counts).length > 0) {
+    for (const [key, n] of Object.entries(counts)) {
+      const k = key as ComplianceSubcategory;
+      lines.push(`• ${CATEGORY_EMOJI[k]} ${CATEGORY_LABEL_KO[k]}: ${n}건`);
+    }
+  } else {
+    lines.push(`• 변경: ${classified.summary.total}건 (자동 반영 후보 ${classified.summary.autoApply}건, 디자이너 검토 ${classified.summary.reportOnly}건)`);
+  }
+  return lines;
+}
+
 async function notifySlack(): Promise<void> {
   const url = process.env.SLACK_WEBHOOK_URL;
   if (!url) { console.log('[slack] skipped (SLACK_WEBHOOK_URL not set)'); return; }
+  const viewerLine = manifest?.viewerUrl ? `\n• 리뷰 viewer: <${manifest.viewerUrl}|${csId}>` : '';
+  const audit = await fetchAuditContext();
+  const auditLines: string[] = [];
+  if (audit.issueLink) auditLines.push(`• 오늘의 audit Issue: ${audit.issueLink}`);
+  if (audit.prLink) auditLines.push(`• 새 화면 등록 PR: ${audit.prLink}`);
   const summary =
     `🎨 *Figma 변경 감지* — \`${csId}\`\n` +
-    `• auto-apply: ${classified.summary.autoApply}건\n` +
-    `• report-only: ${classified.summary.reportOnly}건\n` +
-    `• repo: <https://github.com/${owner}/${repo}|${owner}/${repo}>`;
+    buildLocalizedSummary().join('\n') +
+    (auditLines.length ? '\n' + auditLines.join('\n') : '') +
+    viewerLine +
+    `\n• repo: <https://github.com/${owner}/${repo}|${owner}/${repo}>`;
   await postWebhook(url, { text: summary }, 'slack');
 }
 
 async function notifyDiscord(): Promise<void> {
   const url = process.env.DISCORD_WEBHOOK_URL;
   if (!url) { console.log('[discord] skipped (DISCORD_WEBHOOK_URL not set)'); return; }
+  const viewerLine = manifest?.viewerUrl ? `\n리뷰 viewer: ${manifest.viewerUrl}` : '';
   const content =
     `🎨 **Figma 변경 감지** — \`${csId}\`\n` +
-    `auto-apply: ${classified.summary.autoApply}건 · report-only: ${classified.summary.reportOnly}건\n` +
-    `repo: https://github.com/${owner}/${repo}`;
+    buildLocalizedSummary().join('\n') +
+    viewerLine +
+    `\nrepo: https://github.com/${owner}/${repo}`;
   await postWebhook(url, { content }, 'discord');
 }
 
