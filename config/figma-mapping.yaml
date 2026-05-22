@@ -115,3 +115,33 @@ screens:
       apply: partial
       allowedClasses:
         - text
+  # Auto-registered by figma-audit on 2026-05-21 (sighted 2 times, first seen 2026-05-21)
+  auto_test1_35_244:
+    figmaNodeId: "35:244"
+    figmaNodeName: "test1"
+    figmaNodePath: []
+    code: ../src/screens/FigmaFrameTracking.ts
+    targetType: screen
+    automation:
+      apply: report-only
+      audit: include
+      allowedClasses:
+        - token
+        - text
+        - layout
+        - structure
+  # Auto-registered by figma-audit on 2026-05-21 (sighted 2 times, first seen 2026-05-21)
+  auto_test2_35_382:
+    figmaNodeId: "35:382"
+    figmaNodeName: "test2"
+    figmaNodePath: []
+    code: ../src/screens/FigmaFrameTracking.ts
+    targetType: screen
+    automation:
+      apply: report-only
+      audit: include
+      allowedClasses:
+        - token
+        - text
+        - layout
+        - structure
