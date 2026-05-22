@@ -103,9 +103,15 @@ scripts/ops/                 # 보조 ops 스크립트
 .github/workflows/           # figma-audit, figma-pipeline, pr-checks, designer-approval
 config/figma-mapping.yaml    # 사용자 매핑 (비워 두고 직접 등록)
 package.json                 # 봇 dependencies + npm scripts
+package-lock.json            # 잠긴 dependency 트리 (`npm ci` 재현성용)
 tsconfig.json                # 스크립트 빌드 설정
+tsconfig.app.json            # (현재 v1 한정) 데모 앱 빌드 설정 — 후속 PR에서 분리 예정
+tsconfig.node.json           # (현재 v1 한정) Vite 노드 측 설정
+vite.config.ts               # (현재 v1 한정) 데모 앱 빌드용
 eslint.config.js             # 린트 설정
 ```
+
+> v1에서는 `pr-checks` 워크플로가 `npm run build`로 `tsc -b && vite build`를 실행합니다. 봇 자체는 Vite/React 없이 동작하지만 build step이 데모 앱 빌드를 함께 검증하므로 위 5개 파일이 필요합니다. **다음 release에서 봇 빌드를 독립시키면 vite/tsconfig.app/tsconfig.node가 빠집니다.**
 
 ### 3. 디자인 시스템 등록
 
@@ -125,10 +131,11 @@ screens:
   home_screen:
     figmaNodeId: "123:456"
     figmaNodeName: "Home"
+    figmaNodePath: []          # 필수 (현재 schema에서 required, 비워두려면 [])
     code: ../src/screens/Home.tsx
     targetType: screen
     automation:
-      apply: report-only      # 또는 auto-apply (텍스트 marker 한정)
+      apply: report-only        # 또는 auto-apply (텍스트 marker 한정)
       audit: include
       allowedClasses:
         - token
