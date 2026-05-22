@@ -133,13 +133,17 @@ const reportWithCompliance = buildDesignerReport({
   complianceSummary,
 });
 
-assert.match(reportWithCompliance, /## Detached Styles/);
+assert.match(reportWithCompliance, /## 변경 분류/);
+assert.match(reportWithCompliance, /디자인 시스템 미사용: 1건/);
+assert.match(reportWithCompliance, /새 화면 추가: 1건/);
+assert.match(reportWithCompliance, /이미지 변경: 1건/);
+assert.match(reportWithCompliance, /## .*디자인 시스템 미사용/);
 assert.match(reportWithCompliance, /Pill/);
 assert.match(reportWithCompliance, /fill/);
-assert.match(reportWithCompliance, /## New Frames in Tracked Screens/);
+assert.match(reportWithCompliance, /## .*새 화면 추가/);
 assert.match(reportWithCompliance, /Promo Banner/);
 assert.match(reportWithCompliance, /pesse_home/);
-assert.match(reportWithCompliance, /## Image Changes/);
+assert.match(reportWithCompliance, /## .*이미지 변경/);
 assert.match(reportWithCompliance, /img-old/);
 assert.match(reportWithCompliance, /img-new/);
 
@@ -157,8 +161,9 @@ const reportNoCompliance = buildDesignerReport({
   generatedAt: '2026-05-21T00:00:00.000Z',
   artifactsSha256: 'sha256:x',
 });
-assert.doesNotMatch(reportNoCompliance, /## Detached Styles/);
-assert.doesNotMatch(reportNoCompliance, /## New Frames/);
-assert.doesNotMatch(reportNoCompliance, /## Image Changes/);
+assert.doesNotMatch(reportNoCompliance, /## .*디자인 시스템 미사용/);
+assert.doesNotMatch(reportNoCompliance, /## .*새 화면 추가/);
+assert.doesNotMatch(reportNoCompliance, /## .*이미지 변경/);
+assert.doesNotMatch(reportNoCompliance, /## 변경 분류/);
 
 console.log('Stage 4 compliance report sections PASS');

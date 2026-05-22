@@ -1,8 +1,15 @@
+import { labelForClass, emojiForClass, RAW_CLASSES_WITH_SUBCATEGORY } from './category-labels.ts';
+
 export interface ViewerChange {
   key: string;
   nodeId: string | null;
   nodeName: string;
   classes: string[];
+  // High-level compliance subcategories derived by the classifier. Prefer
+  // this over `classes` for designer-facing labels — `classes` carries raw
+  // diff classes (text, component-props, token, structure, ...) that don't
+  // have Korean labels of their own.
+  subcategories?: string[];
   reasons: string[];
   decision: string;
   decisionReasons: string[];
@@ -49,29 +56,60 @@ export function buildViewerHtml(input: {
       ? `https://www.figma.com/design/${encodeURIComponent(input.fileKey)}/?node-id=${encodeURIComponent(nodeId.replace(':', '-'))}`
       : '#';
     const codePath = normalizeCodePath(change.target?.code ?? null);
+    // Render tags so designers see every signal the classifier surfaced.
+    //   - When subcategories[] is present: union of subcategories and any
+    //     raw classes that do NOT already roll up to one of those
+    //     subcategories. Token / structure / asset / layout don't have a
+    //     compliance bucket but still matter for risk, so they ride along.
+    //   - When subcategories[] is absent (legacy snapshots / hand-built
+    //     fixtures): fall back to raw classes directly; labelForClass
+    //     covers both compliance names and raw class names.
+    // Dedup by localized label so 'text' + subcategory 'text-change' don't
+    // render the same chip twice.
+    const tagKeys: string[] = [];
+    const seen = new Set<string>();
+    const push = (raw: string) => {
+      const label = labelForClass(raw);
+      if (seen.has(label)) return;
+      seen.add(label);
+      tagKeys.push(raw);
+    };
+    const hasSubcategories = (change.subcategories?.length ?? 0) > 0;
+    if (hasSubcategories) {
+      for (const sub of change.subcategories!) push(sub);
+      for (const raw of change.classes) {
+        if (RAW_CLASSES_WITH_SUBCATEGORY.has(raw)) continue; // covered by a subcategory above
+        push(raw);
+      }
+    } else {
+      for (const raw of change.classes) push(raw);
+    }
+    const tags = tagKeys
+      .map(c => `<span class="tag">${escapeHtml(emojiForClass(c))} ${escapeHtml(labelForClass(c))}</span>`)
+      .join(' ');
     return `<section class="card">
   <header>
-    <p class="eyebrow">#${index + 1} · ${escapeHtml(change.decision)}</p>
+    <p class="eyebrow">#${index + 1} · ${escapeHtml(decisionLabelKo(change.decision))}</p>
     <h2>${escapeHtml(change.nodeName)} <code>${escapeHtml(nodeId)}</code></h2>
-    <p>${change.classes.map(c => `<span class="tag">${escapeHtml(c)}</span>`).join(' ')}</p>
+    <p>${tags}</p>
   </header>
   <div class="compare">
     <figure>
-      <figcaption>Before</figcaption>
-      ${images.before ? `<img src="${escapeHtml(images.before)}" alt="Before ${escapeHtml(change.nodeName)}">` : '<div class="empty">No baseline image</div>'}
+      <figcaption>이전 (Before)</figcaption>
+      ${images.before ? `<img src="${escapeHtml(images.before)}" alt="이전 ${escapeHtml(change.nodeName)}">` : '<div class="empty">이전 baseline 이미지 없음</div>'}
     </figure>
     <figure>
-      <figcaption>After</figcaption>
-      ${images.after ? `<img src="${escapeHtml(images.after)}" alt="After ${escapeHtml(change.nodeName)}">` : '<div class="empty">No snapshot image</div>'}
+      <figcaption>현재 (After)</figcaption>
+      ${images.after ? `<img src="${escapeHtml(images.after)}" alt="현재 ${escapeHtml(change.nodeName)}">` : '<div class="empty">현재 스냅샷 이미지 없음</div>'}
     </figure>
   </div>
   <dl>
     <dt>Key</dt><dd><code>${escapeHtml(change.key)}</code></dd>
-    <dt>Code</dt><dd>${codePath ? `<code>${escapeHtml(codePath)}</code>` : '<span class="muted">No mapped code path</span>'}</dd>
-    <dt>Reasons</dt><dd><ul>${change.reasons.map(r => `<li>${escapeHtml(r)}</li>`).join('')}</ul></dd>
-    <dt>Decision</dt><dd><ul>${change.decisionReasons.map(r => `<li>${escapeHtml(r)}</li>`).join('')}</ul></dd>
+    <dt>코드 경로</dt><dd>${codePath ? `<code>${escapeHtml(codePath)}</code>` : '<span class="muted">매핑된 코드 경로 없음</span>'}</dd>
+    <dt>감지 이유</dt><dd><ul>${change.reasons.map(r => `<li>${escapeHtml(r)}</li>`).join('')}</ul></dd>
+    <dt>처리 결정</dt><dd><ul>${change.decisionReasons.map(r => `<li>${escapeHtml(r)}</li>`).join('')}</ul></dd>
   </dl>
-  <p><a href="${figmaUrl}" target="_blank" rel="noreferrer">Open in Figma</a></p>
+  <p><a href="${figmaUrl}" target="_blank" rel="noreferrer">Figma에서 열기</a></p>
 </section>`;
   }).join('\n');
 
@@ -108,17 +146,17 @@ a { color: #2563eb; }
 </head>
 <body>
 <header class="top">
-  <h1>Designer Review · ${escapeHtml(input.csId)}</h1>
-  <p>Total ${input.classified.summary.total} · auto-apply ${input.classified.summary.autoApply} · report-only ${input.classified.summary.reportOnly}</p>
-  ${input.issueUrl ? `<p>Issue: <a href="${escapeHtml(input.issueUrl)}">${escapeHtml(input.issueUrl)}</a></p>` : ''}
+  <h1>디자이너 리뷰 · ${escapeHtml(input.csId)}</h1>
+  <p>총 변경 ${input.classified.summary.total}건 · 자동 반영 후보 ${input.classified.summary.autoApply}건 · 디자이너 검토 ${input.classified.summary.reportOnly}건</p>
+  ${input.issueUrl ? `<p>관련 Issue: <a href="${escapeHtml(input.issueUrl)}">${escapeHtml(input.issueUrl)}</a></p>` : ''}
 </header>
 <main>
   <section class="instructions">
-    <h2>Designer decision</h2>
+    <h2>디자이너 결정</h2>
     <p>변경을 수락하면 GitHub Issue에 <code>designer-approved</code> 라벨을, 거부하면 <code>designer-rejected</code> 라벨을 붙입니다.</p>
     <p>Phase A에서는 결정 기록과 viewer/manifest까지 처리합니다. 코드 자동 수정은 다음 Phase B에서 marker 기반으로 제한해 진행합니다.</p>
   </section>
-  ${cards || '<section class="card">No changes</section>'}
+  ${cards || '<section class="card">변경 사항이 없습니다.</section>'}
 </main>
 </body>
 </html>`;
@@ -127,6 +165,16 @@ a { color: #2563eb; }
 function normalizeCodePath(code: string | null): string | null {
   if (!code) return null;
   return code.replace(/^\.\.\//, '');
+}
+
+const DECISION_LABEL_KO: Record<string, string> = {
+  'auto-apply': '자동 반영 후보',
+  'report-only': '디자이너 검토',
+  'unknown': '미분류',
+};
+
+function decisionLabelKo(raw: string): string {
+  return DECISION_LABEL_KO[raw] ?? raw;
 }
 
 function escapeHtml(value: string): string {

@@ -4,13 +4,23 @@ on:
   repository_dispatch:
     types: [figma-file-update]   # task-5 Cloudflare Worker가 이걸 호출
   schedule:
-    - cron: '0 */2 * * *'        # 2시간 cron 안전망 (webhook 누락 대비)
+    # 2시간 cron 안전망 (webhook 누락 대비). 00:00 UTC slot은 figma-audit
+    # 완료 후 workflow_run cascade가 채우므로, cron은 02:00 UTC부터 시작해
+    # double-fire를 막는다. 결과: 02,04,06,...,22 UTC + cascade 1회 = 하루 12회.
+    - cron: '0 2-22/2 * * *'
   workflow_dispatch:
     inputs:
       reason:
         description: 'Manual trigger reason'
         required: false
         default: 'manual'
+  # Daily audit → pipeline cascade. When figma-audit completes successfully,
+  # automatically run the pipeline so the designer gets one combined daily
+  # alert in Slack covering both compliance (audit) and diff (pipeline).
+  workflow_run:
+    workflows: ['figma-audit']
+    types: [completed]
+    branches: [main]
 
 concurrency:
   group: cs-main-writer-${{ github.ref }}
@@ -18,6 +28,10 @@ concurrency:
 
 jobs:
   figma-pipeline:
+    # When triggered as a cascade from figma-audit, skip the run if audit
+    # didn't succeed — a failed audit means we have no useful audit context
+    # to surface in the unified Slack alert and may be missing inputs.
+    if: github.event_name != 'workflow_run' || github.event.workflow_run.conclusion == 'success'
     runs-on: ubuntu-latest
     timeout-minutes: 15
     permissions:
@@ -152,6 +166,11 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           TRIGGER_EVENT: ${{ github.event_name }}
+          # When triggered as a cascade from figma-audit, expose the upstream
+          # audit run URL so the Slack summary can verify the linked audit
+          # Issue actually came from THIS audit (figma-audit embeds the
+          # run URL in the Issue body). Empty for cron / dispatch runs.
+          AUDIT_RUN_URL: ${{ github.event.workflow_run.html_url || '' }}
 
       - name: Persist CS manifest
         if: github.ref == 'refs/heads/main' && steps.pipeline.outputs.cs_id != '' && hashFiles('.automation/cs/*.json') != ''
