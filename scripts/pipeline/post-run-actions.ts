@@ -75,6 +75,7 @@ const classified = JSON.parse(readFileSync(classifiedPath, 'utf-8')) as {
     nodeId: string;
     nodeName: string;
     classes: string[];
+    subcategories?: string[];
     decision: 'auto-apply' | 'report-only';
     target?: { section?: string };
   }>;
@@ -166,13 +167,18 @@ function updateManifestIssue(id: string, issueNumber: number, issueUrl: string):
 // ----- notify channels -----
 
 // Count how many of each Korean-labelled category appear in this change set.
-// `classified.changes[i].classes[]` may carry multiple tags per change
-// (e.g. ['detached-style', 'new-frame']) — we increment each category it
-// belongs to so the Slack summary reflects total occurrences, not changes.
+// Use the classifier-derived `subcategories[]` rather than raw `classes[]` —
+// raw classes carry low-level diff tags (text, component-props, token,
+// structure, ...) that don't map 1:1 to the user-facing compliance buckets.
+// `subcategories` is already deduped per change and normalized to keys we
+// have Korean labels for.
 function categoryCounts(): Partial<Record<ComplianceSubcategory, number>> {
   const counts: Partial<Record<ComplianceSubcategory, number>> = {};
   for (const change of classified.changes) {
-    for (const raw of change.classes) {
+    const tags = change.subcategories && change.subcategories.length > 0
+      ? change.subcategories
+      : change.classes;
+    for (const raw of tags) {
       if (raw in CATEGORY_LABEL_KO) {
         const k = raw as ComplianceSubcategory;
         counts[k] = (counts[k] ?? 0) + 1;
@@ -219,10 +225,16 @@ async function notifySlack(): Promise<void> {
   const url = process.env.SLACK_WEBHOOK_URL;
   if (!url) { console.log('[slack] skipped (SLACK_WEBHOOK_URL not set)'); return; }
   const viewerLine = manifest?.viewerUrl ? `\n• 리뷰 viewer: <${manifest.viewerUrl}|${csId}>` : '';
-  const audit = await fetchAuditContext();
+  // Only enrich with audit context when this pipeline run was cascaded by
+  // figma-audit. For ordinary repository_dispatch / scheduled / manual runs,
+  // the "latest open audit Issue / auto-register PR" links are unrelated to
+  // the diff being reported and would confuse the reader.
   const auditLines: string[] = [];
-  if (audit.issueLink) auditLines.push(`• 오늘의 audit Issue: ${audit.issueLink}`);
-  if (audit.prLink) auditLines.push(`• 새 화면 등록 PR: ${audit.prLink}`);
+  if (process.env.TRIGGER_EVENT === 'workflow_run') {
+    const audit = await fetchAuditContext();
+    if (audit.issueLink) auditLines.push(`• 오늘의 audit Issue: ${audit.issueLink}`);
+    if (audit.prLink) auditLines.push(`• 새 화면 등록 PR: ${audit.prLink}`);
+  }
   const summary =
     `🎨 *Figma 변경 감지* — \`${csId}\`\n` +
     buildLocalizedSummary().join('\n') +

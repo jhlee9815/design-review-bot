@@ -5,6 +5,11 @@ export interface ViewerChange {
   nodeId: string | null;
   nodeName: string;
   classes: string[];
+  // High-level compliance subcategories derived by the classifier. Prefer
+  // this over `classes` for designer-facing labels — `classes` carries raw
+  // diff classes (text, component-props, token, structure, ...) that don't
+  // have Korean labels of their own.
+  subcategories?: string[];
   reasons: string[];
   decision: string;
   decisionReasons: string[];
@@ -51,7 +56,14 @@ export function buildViewerHtml(input: {
       ? `https://www.figma.com/design/${encodeURIComponent(input.fileKey)}/?node-id=${encodeURIComponent(nodeId.replace(':', '-'))}`
       : '#';
     const codePath = normalizeCodePath(change.target?.code ?? null);
-    const tags = change.classes
+    // Prefer subcategories (compliance-level) for Korean tag display. Fall
+    // back to raw classes only when the classifier didn't emit subcategories
+    // (older snapshots, hand-built fixtures). labelForClass passes raw values
+    // through unchanged so nothing is silently lost.
+    const tagSource = change.subcategories && change.subcategories.length > 0
+      ? change.subcategories
+      : change.classes;
+    const tags = tagSource
       .map(c => `<span class="tag">${escapeHtml(emojiForClass(c))} ${escapeHtml(labelForClass(c))}</span>`)
       .join(' ');
     return `<section class="card">
