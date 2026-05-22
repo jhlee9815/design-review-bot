@@ -208,16 +208,23 @@ async function fetchAuditContext(): Promise<{ issueLink?: string; prLink?: strin
 }
 
 function buildLocalizedSummary(): string[] {
+  // Always emit the auto-apply / report-only totals so a designer sees the
+  // true change count even when some changes are uncategorized (low-level
+  // raw classes like token / structure / asset / layout that don't roll up
+  // to a ComplianceSubcategory). The category breakdown sits ABOVE the
+  // total when at least one categorized change exists, so the unified
+  // message looks like:
+  //   • 🆕 새 화면 추가: 2건
+  //   • 🎨 디자인 시스템 미사용: 1083건
+  //   • 전체: 1090건 (자동 반영 후보 0건, 디자이너 검토 1090건)
   const lines: string[] = [];
-  const counts = categoryCounts();
-  if (Object.keys(counts).length > 0) {
-    for (const [key, n] of Object.entries(counts)) {
-      const k = key as ComplianceSubcategory;
-      lines.push(`• ${CATEGORY_EMOJI[k]} ${CATEGORY_LABEL_KO[k]}: ${n}건`);
-    }
-  } else {
-    lines.push(`• 변경: ${classified.summary.total}건 (자동 반영 후보 ${classified.summary.autoApply}건, 디자이너 검토 ${classified.summary.reportOnly}건)`);
+  for (const [key, n] of Object.entries(categoryCounts())) {
+    const k = key as ComplianceSubcategory;
+    lines.push(`• ${CATEGORY_EMOJI[k]} ${CATEGORY_LABEL_KO[k]}: ${n}건`);
   }
+  lines.push(
+    `• 전체: ${classified.summary.total}건 (자동 반영 후보 ${classified.summary.autoApply}건, 디자이너 검토 ${classified.summary.reportOnly}건)`,
+  );
   return lines;
 }
 

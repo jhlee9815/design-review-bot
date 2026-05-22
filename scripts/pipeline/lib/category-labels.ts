@@ -22,19 +22,58 @@ export const CATEGORY_EMOJI: Record<ComplianceSubcategory, string> = {
   'new-frame': '🆕',
 };
 
+// Korean labels for the lower-level raw diff classes the classifier emits.
+// These don't roll up to a ComplianceSubcategory (so the high-level "변경
+// 분류" summary doesn't count them), but the viewer still surfaces them as
+// per-change tags so designers see structural risk that doesn't fit the five
+// compliance buckets.
+const RAW_CLASS_LABEL_KO: Record<string, string> = {
+  text: '텍스트 변경',
+  'component-props': '속성 변경',
+  token: '디자인 토큰 변경',
+  structure: '구조 변경',
+  asset: '에셋 변경',
+  layout: '레이아웃 변경',
+};
+const RAW_CLASS_EMOJI: Record<string, string> = {
+  text: '✏️',
+  'component-props': '🧩',
+  token: '🎨',
+  structure: '🧱',
+  asset: '📦',
+  layout: '📐',
+};
+
+// Set of raw classes the classifier maps to a ComplianceSubcategory. The
+// viewer uses this to avoid showing the same change twice when both the
+// raw class and its derived subcategory appear (e.g. ['text'] →
+// subcategories ['text-change']).
+export const RAW_CLASSES_WITH_SUBCATEGORY: ReadonlySet<string> = new Set([
+  'text',
+  'component-props',
+  'image-change',
+  'detached-style',
+  'new-frame',
+]);
+
 export const DETACHED_STYLE_KIND_LABEL_KO: Record<DetachedStyleKind, string> = {
   color: '색상',
   typography: '타이포',
   effect: '효과',
 };
 
-// Fallback: when a tag from `change.classes[]` doesn't map to a known
-// ComplianceSubcategory (older snapshots may emit ad-hoc class names), pass
-// the raw value through so we don't silently lose information in the viewer.
+// Fallback chain: compliance subcategory → low-level raw class → raw passthrough.
+// If a tag doesn't match any known label (older snapshots may emit ad-hoc
+// class names), pass the raw value through so we don't silently lose
+// information in the viewer.
 export function labelForClass(raw: string): string {
-  return (CATEGORY_LABEL_KO as Record<string, string>)[raw] ?? raw;
+  return (CATEGORY_LABEL_KO as Record<string, string>)[raw]
+    ?? RAW_CLASS_LABEL_KO[raw]
+    ?? raw;
 }
 
 export function emojiForClass(raw: string): string {
-  return (CATEGORY_EMOJI as Record<string, string>)[raw] ?? '•';
+  return (CATEGORY_EMOJI as Record<string, string>)[raw]
+    ?? RAW_CLASS_EMOJI[raw]
+    ?? '•';
 }

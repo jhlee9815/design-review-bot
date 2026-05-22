@@ -87,6 +87,36 @@ const realHtml = buildViewerHtml({
 assert.match(realHtml, /텍스트 변경/, 'real classifier output should localize via subcategories');
 assert.doesNotMatch(realHtml, /class="tag">[^<]*\btext\b[^<]*<\/span>/, 'should not leak raw "text" class as a tag');
 
+// Mixed: a change with mapped + unmapped raw classes
+//   classes:      ['text', 'layout']
+//   subcategories: ['text-change']
+// Expected: both "텍스트 변경" AND "레이아웃 변경" appear as tags. The
+// previous subcategories-only path dropped 'layout' silently.
+const mixedClassified = {
+  summary: { total: 1, autoApply: 0, reportOnly: 1, unknown: 0 },
+  changes: [
+    {
+      key: 'mixed',
+      nodeId: '10:1',
+      nodeName: 'Mixed change',
+      classes: ['text', 'layout'],
+      reasons: [],
+      decision: 'report-only',
+      decisionReasons: [],
+      target: { code: null },
+      subcategories: ['text-change'],
+    },
+  ],
+};
+const mixedHtml = buildViewerHtml({
+  csId: 'cs-mixed',
+  fileKey: 'figma-file',
+  classified: mixedClassified,
+  imageRefs: {},
+});
+assert.match(mixedHtml, /텍스트 변경/);
+assert.match(mixedHtml, /레이아웃 변경/, 'unmapped raw classes must still surface as tags');
+
 // Fallback: when subcategories[] is missing (older snapshots), labelForClass
 // passes the raw class through unchanged so nothing is silently dropped.
 const legacyClassified = {

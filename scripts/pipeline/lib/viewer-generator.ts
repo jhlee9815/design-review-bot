@@ -1,4 +1,4 @@
-import { labelForClass, emojiForClass } from './category-labels.ts';
+import { labelForClass, emojiForClass, RAW_CLASSES_WITH_SUBCATEGORY } from './category-labels.ts';
 
 export interface ViewerChange {
   key: string;
@@ -56,14 +56,35 @@ export function buildViewerHtml(input: {
       ? `https://www.figma.com/design/${encodeURIComponent(input.fileKey)}/?node-id=${encodeURIComponent(nodeId.replace(':', '-'))}`
       : '#';
     const codePath = normalizeCodePath(change.target?.code ?? null);
-    // Prefer subcategories (compliance-level) for Korean tag display. Fall
-    // back to raw classes only when the classifier didn't emit subcategories
-    // (older snapshots, hand-built fixtures). labelForClass passes raw values
-    // through unchanged so nothing is silently lost.
-    const tagSource = change.subcategories && change.subcategories.length > 0
-      ? change.subcategories
-      : change.classes;
-    const tags = tagSource
+    // Render tags so designers see every signal the classifier surfaced.
+    //   - When subcategories[] is present: union of subcategories and any
+    //     raw classes that do NOT already roll up to one of those
+    //     subcategories. Token / structure / asset / layout don't have a
+    //     compliance bucket but still matter for risk, so they ride along.
+    //   - When subcategories[] is absent (legacy snapshots / hand-built
+    //     fixtures): fall back to raw classes directly; labelForClass
+    //     covers both compliance names and raw class names.
+    // Dedup by localized label so 'text' + subcategory 'text-change' don't
+    // render the same chip twice.
+    const tagKeys: string[] = [];
+    const seen = new Set<string>();
+    const push = (raw: string) => {
+      const label = labelForClass(raw);
+      if (seen.has(label)) return;
+      seen.add(label);
+      tagKeys.push(raw);
+    };
+    const hasSubcategories = (change.subcategories?.length ?? 0) > 0;
+    if (hasSubcategories) {
+      for (const sub of change.subcategories!) push(sub);
+      for (const raw of change.classes) {
+        if (RAW_CLASSES_WITH_SUBCATEGORY.has(raw)) continue; // covered by a subcategory above
+        push(raw);
+      }
+    } else {
+      for (const raw of change.classes) push(raw);
+    }
+    const tags = tagKeys
       .map(c => `<span class="tag">${escapeHtml(emojiForClass(c))} ${escapeHtml(labelForClass(c))}</span>`)
       .join(' ');
     return `<section class="card">
