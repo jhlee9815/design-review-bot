@@ -135,20 +135,21 @@ function isEntryPoint(): boolean {
   return process.argv[1] === thisFile;
 }
 
+// Single base64-of-JSON output instead of parallel `registered_ids` (comma-joined)
+// + `registered_names_b64` (newline-joined). Parallel arrays drop the last name
+// when bash `while read` reads decoded content with no trailing newline, and
+// allow length mismatch if names ever contain commas. JSON survives all of that.
+export function encodeRegisteredItems(registered: Candidate[]): string {
+  const items = registered.map(c => ({ nodeId: c.nodeId, name: c.name }));
+  return Buffer.from(JSON.stringify(items), 'utf-8').toString('base64');
+}
+
 function surfaceOutput(registered: Candidate[], skipped: string[]): void {
   if (!process.env.GITHUB_OUTPUT) return;
-  // Encode names as base64 because Figma frame names are user-controlled
-  // and may contain newlines or = characters that would corrupt the simple
-  // KEY=VALUE format of $GITHUB_OUTPUT and inject ghost outputs.
-  const namesB64 = Buffer.from(
-    registered.map(c => c.name).join('\n'),
-    'utf-8'
-  ).toString('base64');
   const out = [
     `registered_count=${registered.length}`,
     `skipped_count=${skipped.length}`,
-    `registered_ids=${registered.map(c => c.nodeId).join(',')}`,
-    `registered_names_b64=${namesB64}`,
+    `registered_items_b64=${encodeRegisteredItems(registered)}`,
     `mapping_path=${MAPPING_PATH}`,
   ].join('\n');
   try {
