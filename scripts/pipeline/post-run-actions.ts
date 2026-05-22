@@ -217,18 +217,36 @@ function categoryCounts(): Partial<Record<ComplianceSubcategory, number>> {
 async function fetchAuditContext(): Promise<{ issueLink?: string; prLink?: string }> {
   if (!octokit) return {};
   const out: { issueLink?: string; prLink?: string } = {};
+  const auditRunUrl = process.env.AUDIT_RUN_URL ?? '';
   try {
+    // Only surface an audit Issue when the cascading audit run actually
+    // produced one — figma-audit embeds its run URL in the Issue body
+    // (`Workflow run: <url>`), so we accept the latest open Issue only if
+    // its body references THIS audit run URL. Otherwise the audit either
+    // found no violations (no Issue created) or the open Issue is from an
+    // earlier day and would mislead the designer.
     const { data: issues } = await octokit.rest.issues.listForRepo({
       owner, repo, state: 'open', labels: 'audit', per_page: 1, sort: 'created', direction: 'desc',
     });
-    if (issues[0]) out.issueLink = `<${issues[0].html_url}|Issue #${issues[0].number}>`;
+    const issue = issues[0];
+    if (issue && auditRunUrl && (issue.body ?? '').includes(auditRunUrl)) {
+      out.issueLink = `<${issue.html_url}|Issue #${issue.number}>`;
+    }
   } catch {/* best-effort */}
   try {
+    // Auto-register PRs are also gated to this audit run: figma-audit embeds
+    // the audit run URL in the PR body (`Audit run: <url>`). Without that
+    // match we'd surface yesterday's still-open PR as if it were today's.
     const { data: prs } = await octokit.rest.pulls.list({
       owner, repo, state: 'open', per_page: 5, sort: 'created', direction: 'desc',
     });
     const autoRegister = prs.find(p => p.labels.some(l => l.name === 'auto-register'));
-    if (autoRegister) out.prLink = `<${autoRegister.html_url}|PR #${autoRegister.number}>`;
+    if (autoRegister && auditRunUrl) {
+      const { data: full } = await octokit.rest.pulls.get({ owner, repo, pull_number: autoRegister.number });
+      if ((full.body ?? '').includes(auditRunUrl)) {
+        out.prLink = `<${autoRegister.html_url}|PR #${autoRegister.number}>`;
+      }
+    }
   } catch {/* best-effort */}
   return out;
 }

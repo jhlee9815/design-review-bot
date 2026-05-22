@@ -163,6 +163,11 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           TRIGGER_EVENT: ${{ github.event_name }}
+          # When triggered as a cascade from figma-audit, expose the upstream
+          # audit run URL so the Slack summary can verify the linked audit
+          # Issue actually came from THIS audit (figma-audit embeds the
+          # run URL in the Issue body). Empty for cron / dispatch runs.
+          AUDIT_RUN_URL: ${{ github.event.workflow_run.html_url || '' }}
 
       - name: Persist CS manifest
         if: github.ref == 'refs/heads/main' && steps.pipeline.outputs.cs_id != '' && hashFiles('.automation/cs/*.json') != ''
