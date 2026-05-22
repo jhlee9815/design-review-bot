@@ -145,3 +145,33 @@ screens:
         - text
         - layout
         - structure
+  # Auto-registered by figma-audit on 2026-05-22 (sighted 2 times, first seen 2026-05-22)
+  auto_mo_home_hub_73_2076:
+    figmaNodeId: "73:2076"
+    figmaNodeName: "mo - Home Hub"
+    figmaNodePath: []
+    code: ../src/screens/FigmaFrameTracking.ts
+    targetType: screen
+    automation:
+      apply: report-only
+      audit: include
+      allowedClasses:
+        - token
+        - text
+        - layout
+        - structure
+  # Auto-registered by figma-audit on 2026-05-22 (sighted 2 times, first seen 2026-05-22)
+  auto_mo_family_management_73_2090:
+    figmaNodeId: "73:2090"
+    figmaNodeName: "mo - Family Management"
+    figmaNodePath: []
+    code: ../src/screens/FigmaFrameTracking.ts
+    targetType: screen
+    automation:
+      apply: report-only
+      audit: include
+      allowedClasses:
+        - token
+        - text
+        - layout
+        - structure
