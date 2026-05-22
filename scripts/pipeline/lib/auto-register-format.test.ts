@@ -1,6 +1,14 @@
 import assert from 'node:assert/strict';
 import yaml from 'js-yaml';
-import { generateMappingKey, buildYamlEntry } from '../auto-register.ts';
+import { generateMappingKey, buildYamlEntry, encodeRegisteredItems } from '../auto-register.ts';
+
+interface DecodedItem { nodeId: string; name: string }
+function decode(b64: string): DecodedItem[] {
+  return JSON.parse(Buffer.from(b64, 'base64').toString('utf-8')) as DecodedItem[];
+}
+function makeCandidate(nodeId: string, name: string) {
+  return { nodeId, name, firstSeenAt: '', lastSeenAt: '', sightingCount: 2 };
+}
 
 // ─────────────────────────────────────────────────────────────────────────────
 // generateMappingKey
@@ -98,6 +106,54 @@ import { generateMappingKey, buildYamlEntry } from '../auto-register.ts';
     assert.equal(typeof e.figmaNodeName, 'string', `name "${input}" should stay a string`);
     assert.equal(e.figmaNodeName, expected, `name "${input}" should round-trip exactly`);
   }
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// encodeRegisteredItems — GITHUB_OUTPUT base64 JSON envelope.
+// Regression suite for the PR #25 class of bugs where parallel `registered_ids`
+// + `registered_names_b64` arrays lost the trailing name when bash `while read`
+// hit decoded content with no trailing newline.
+// ─────────────────────────────────────────────────────────────────────────────
+
+{
+  // Empty list still produces a valid base64 of "[]".
+  const b64 = encodeRegisteredItems([]);
+  assert.deepEqual(decode(b64), []);
+}
+
+{
+  // Single item round-trips.
+  const b64 = encodeRegisteredItems([makeCandidate('35:244', 'test1')]);
+  assert.deepEqual(decode(b64), [{ nodeId: '35:244', name: 'test1' }]);
+}
+
+{
+  // PR #25 regression: two items, both names must survive — the old
+  // newline-joined-then-base64 + `while read` decode dropped the last name
+  // when decoded content had no trailing newline.
+  const b64 = encodeRegisteredItems([
+    makeCandidate('35:244', 'test1'),
+    makeCandidate('35:382', 'test2'),
+  ]);
+  assert.deepEqual(decode(b64), [
+    { nodeId: '35:244', name: 'test1' },
+    { nodeId: '35:382', name: 'test2' },
+  ]);
+}
+
+{
+  // Frame name with an embedded newline must stay one name, not split into two.
+  const b64 = encodeRegisteredItems([makeCandidate('1:1', 'line1\nline2')]);
+  assert.deepEqual(decode(b64), [{ nodeId: '1:1', name: 'line1\nline2' }]);
+}
+
+{
+  // Frame names with YAML/CSV/quote-hostile chars must round-trip exactly.
+  const cases = ['Phone · My Account', 'a,b,c', 'with "quotes"', 'eq=sign', 'back\\slash'];
+  const b64 = encodeRegisteredItems(cases.map((n, i) => makeCandidate(`9:${i}`, n)));
+  const decoded = decode(b64);
+  assert.equal(decoded.length, cases.length);
+  cases.forEach((n, i) => assert.equal(decoded[i].name, n, `case ${i}: ${n}`));
 }
 
 console.log('auto-register-format tests passed');
