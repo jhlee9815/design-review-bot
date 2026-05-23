@@ -7,10 +7,11 @@ pathResolution:
   description: All relative paths in this file are resolved from the directory containing this config file.
 
 # Audit overrides — excludes intentional reference frames from `npm run figma:audit`.
-# 22:129 is the Lucide icon library; treating it as a violation is a false positive.
 audit:
   excludeNodeIds:
-    - "22:129"  # Icon library (Lucide variant set)
+    - "22:129"  # Icon library (Lucide variant set) — false-positive detached styles
+    - "2:2"     # Apple-inspired DS Preview (page 2 reference) — not tracked
+    - "79:306"  # Sibling copy of the DS Preview frame — same policy as 2:2
 
 # Tokens — report-only for Pesse demo (no auto-token-apply target yet)
 tokens:
