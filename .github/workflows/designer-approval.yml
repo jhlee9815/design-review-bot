@@ -95,10 +95,12 @@ jobs:
           GITHUB_TOKEN: ${{ steps.designer-app-token.outputs.token }}
           MANIFEST_SOURCE_WORKFLOW: designer-approval
           MANIFEST_SOURCE_RUN_URL: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
-          # Dry-run for the first week of operation: log decision only, do not
-          # mutate .automation/baseline/. Flip to '0' once we've observed at
-          # least one approval cycle without surprises.
-          FIGMA_PROMOTE_DRY_RUN: '1'
+          # Production: actually promote the approved snapshot. Decision
+          # logic still skips on snapshot-missing / older-than-baseline /
+          # filename-collision (see lib/baseline-promote.ts). Rollback if
+          # needed: `git rm` the offending new baseline file and the
+          # previous one auto-resumes via sort().at(-1).
+          FIGMA_PROMOTE_DRY_RUN: '0'
 
       - name: Persist manifest transition PR
         if: github.ref == 'refs/heads/main'
