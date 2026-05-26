@@ -32,3 +32,93 @@ compositions: {}
 # auto-registered test/mo frames) became stale after Figma file restructure.
 # figma-audit re-registers any currently-living top-level frames automatically.
 screens: {}
+  # Auto-registered by figma-audit on 2026-05-26 (sighted 2 times, first seen 2026-05-26)
+  auto_phone_home_balance_81_302:
+    figmaNodeId: "81:302"
+    figmaNodeName: "Phone · Home — Balance"
+    figmaNodePath: []
+    code: ../src/screens/FigmaFrameTracking.ts
+    targetType: screen
+    automation:
+      apply: report-only
+      audit: include
+      allowedClasses:
+        - token
+        - text
+        - layout
+        - structure
+  # Auto-registered by figma-audit on 2026-05-26 (sighted 2 times, first seen 2026-05-26)
+  auto_phone_cards_select_card_81_388:
+    figmaNodeId: "81:388"
+    figmaNodeName: "Phone · Cards — Select Card"
+    figmaNodePath: []
+    code: ../src/screens/FigmaFrameTracking.ts
+    targetType: screen
+    automation:
+      apply: report-only
+      audit: include
+      allowedClasses:
+        - token
+        - text
+        - layout
+        - structure
+  # Auto-registered by figma-audit on 2026-05-26 (sighted 2 times, first seen 2026-05-26)
+  auto_phone_send_money_81_429:
+    figmaNodeId: "81:429"
+    figmaNodeName: "Phone · Send Money"
+    figmaNodePath: []
+    code: ../src/screens/FigmaFrameTracking.ts
+    targetType: screen
+    automation:
+      apply: report-only
+      audit: include
+      allowedClasses:
+        - token
+        - text
+        - layout
+        - structure
+  # Auto-registered by figma-audit on 2026-05-26 (sighted 2 times, first seen 2026-05-26)
+  auto_phone_my_account_81_494:
+    figmaNodeId: "81:494"
+    figmaNodeName: "Phone · My Account"
+    figmaNodePath: []
+    code: ../src/screens/FigmaFrameTracking.ts
+    targetType: screen
+    automation:
+      apply: report-only
+      audit: include
+      allowedClasses:
+        - token
+        - text
+        - layout
+        - structure
+  # Auto-registered by figma-audit on 2026-05-26 (sighted 2 times, first seen 2026-05-26)
+  auto_test1_35_244:
+    figmaNodeId: "35:244"
+    figmaNodeName: "test1"
+    figmaNodePath: []
+    code: ../src/screens/FigmaFrameTracking.ts
+    targetType: screen
+    automation:
+      apply: report-only
+      audit: include
+      allowedClasses:
+        - token
+        - text
+        - layout
+        - structure
+  # Auto-registered by figma-audit on 2026-05-26 (sighted 2 times, first seen 2026-05-26)
+  auto_test_calendar_81_732:
+    figmaNodeId: "81:732"
+    figmaNodeName: "test-calendar"
+    figmaNodePath: []
+    code: ../src/screens/FigmaFrameTracking.ts
+    targetType: screen
+    automation:
+      apply: report-only
+      audit: include
+      allowedClasses:
+        - token
+        - text
+        - layout
+        - structure
