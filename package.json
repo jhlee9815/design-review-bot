@@ -62,6 +62,8 @@
     "figma:test:audit-slack": "tsx scripts/pipeline/lib/audit-slack.test.ts",
     "figma:test:auto-register-format": "tsx scripts/pipeline/lib/auto-register-format.test.ts",
     "figma:test:slack-summary": "tsx scripts/pipeline/lib/slack-summary.test.ts",
+    "figma:test:audit-issue-decision": "tsx scripts/pipeline/lib/audit-issue-decision.test.ts",
+    "figma:audit:issue": "tsx scripts/pipeline/audit-issue.ts",
     "figma:audit:notify": "tsx scripts/pipeline/audit-notify.ts"
   },
   "dependencies": {

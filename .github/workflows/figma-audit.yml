@@ -196,56 +196,23 @@ jobs:
             fi
           } >> "$GITHUB_STEP_SUMMARY"
 
-      - name: Create audit Issue when violations detected
+      - name: Create or refresh audit Issue when violations detected
         id: audit_issue
         if: steps.audit.outputs.has_violations == 'true'
         env:
-          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GITHUB_REPOSITORY: ${{ github.repository }}
           DETACHED: ${{ steps.audit.outputs.detached_total }}
           UNREG: ${{ steps.audit.outputs.unregistered_total }}
           AUTO_REG: ${{ steps.register.outputs.registered_count || '0' }}
           AUDIT_MD: ${{ steps.audit.outputs.audit_md }}
           RUN_URL: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
-        run: |
-          set -e
-          DATE=$(date -u +%Y-%m-%d)
-          TITLE="[audit] ${DATE} — ${DETACHED} detached styles, ${UNREG} unregistered frames"
-
-          if [ -f "$AUDIT_MD" ]; then
-            REPORT_HEAD=$(head -80 "$AUDIT_MD")
-          else
-            REPORT_HEAD="(report file missing)"
-          fi
-
-          BODY_FILE=$(mktemp)
-          {
-            echo "Daily Figma DS audit found violations."
-            echo ""
-            echo "- Detached styles: **${DETACHED}**"
-            echo "- Unregistered top-level frames: **${UNREG}**"
-            echo "- Auto-registered this run: **${AUTO_REG}**"
-            echo ""
-            echo "Workflow run: ${RUN_URL}"
-            echo "Full report attached as artifact \`figma-audit-${{ github.run_id }}\` (.automation/audits/audit-*.md)."
-            echo ""
-            echo "---"
-            echo ""
-            echo "<details><summary>Top of audit report</summary>"
-            echo ""
-            echo "$REPORT_HEAD"
-            echo ""
-            echo "</details>"
-            echo ""
-            echo "_Created by \`figma-audit\` workflow._"
-          } > "$BODY_FILE"
-
-          OPEN=$(gh issue list --label audit --state open --json number --jq '.[].number' || true)
-          for N in $OPEN; do
-            gh issue close "$N" --comment "Superseded by latest audit run (${RUN_URL})." || true
-          done
-
-          ISSUE_URL=$(gh issue create --title "$TITLE" --label audit --body-file "$BODY_FILE")
-          echo "issue_url=${ISSUE_URL}" >> "$GITHUB_OUTPUT"
+        # Dedup: if the most recent open audit Issue's title encodes the
+        # same (detached, unregistered) counts, comment-as-heartbeat instead
+        # of closing+creating-anew. Avoids the #122/#133-style daily inbox
+        # noise when underlying state is stable. See scripts/pipeline/lib/
+        # audit-issue-decision.ts for the decision matrix.
+        run: npm run figma:audit:issue
 
       - name: Notify Slack with audit summary
         if: steps.audit.outputs.has_violations == 'true'
