@@ -6,6 +6,7 @@ import {
   baselineImagePath,
   buildFigmaImagesUrl,
   imageFileNameForNodeId,
+  promoteSnapshotImagesToBaseline,
   saveImageBuffer,
   snapshotImagePath,
 } from './figma-images.ts';
@@ -27,4 +28,32 @@ const hash = saveImageBuffer(baseline, Buffer.from('png-data'));
 assert.equal(hash.startsWith('sha256:'), true);
 assert.equal(existsSync(baseline), true);
 assert.equal(readFileSync(baseline, 'utf-8'), 'png-data');
+// promoteSnapshotImagesToBaseline: copies every PNG from a cs snapshot dir
+// into the baseline image directory so that promoting the JSON also promotes
+// the matching reference images. Fixes the "이전 baseline 이미지 없음" gap
+// for nodes first captured mid-cycle (e.g. auto-registered 81:302).
+{
+  const promoteRoot = mkdtempSync(join(tmpdir(), 'figma-images-promote-'));
+  const csId = 'cs-2026-05-27T00-00-00';
+  saveImageBuffer(snapshotImagePath(promoteRoot, csId, '81:302'), Buffer.from('after-81-302'));
+  saveImageBuffer(snapshotImagePath(promoteRoot, csId, '7:3'), Buffer.from('after-7-3'));
+  saveImageBuffer(baselineImagePath(promoteRoot, '7:3'), Buffer.from('stale-baseline-7-3'));
+  const copied = promoteSnapshotImagesToBaseline(promoteRoot, csId);
+  assert.deepEqual(copied.sort(), ['7-3', '81-302']);
+  assert.equal(
+    readFileSync(baselineImagePath(promoteRoot, '81:302'), 'utf-8'),
+    'after-81-302',
+    'new baseline image must be written for previously-unbaselined node'
+  );
+  assert.equal(
+    readFileSync(baselineImagePath(promoteRoot, '7:3'), 'utf-8'),
+    'after-7-3',
+    'existing baseline image must be overwritten with the approved snapshot'
+  );
+
+  // Graceful: no snapshot dir → empty list, no throw.
+  const emptyRoot = mkdtempSync(join(tmpdir(), 'figma-images-empty-'));
+  assert.deepEqual(promoteSnapshotImagesToBaseline(emptyRoot, 'cs-missing'), []);
+}
+
 console.log('figma-images PASS');
