@@ -3,11 +3,9 @@ name: figma-pipeline
 on:
   repository_dispatch:
     types: [figma-file-update]   # task-5 Cloudflare Worker가 이걸 호출
-  schedule:
-    # 2시간 cron 안전망 (webhook 누락 대비). 00:00 UTC slot은 figma-audit
-    # 완료 후 workflow_run cascade가 채우므로, cron은 02:00 UTC부터 시작해
-    # double-fire를 막는다. 결과: 02,04,06,...,22 UTC + cascade 1회 = 하루 12회.
-    - cron: '0 2-22/2 * * *'
+  # 독립 cron 없음. 하루 1회 실행은 아래 workflow_run cascade(figma-audit
+  # 완료 후)가 담당한다. webhook(repository_dispatch) + cascade 조합으로
+  # 디자이너는 하루 한 번 audit+pipeline 통합 Slack 알림을 받는다.
   workflow_dispatch:
     inputs:
       reason:
