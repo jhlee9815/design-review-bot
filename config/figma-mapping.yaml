@@ -122,3 +122,18 @@ screens:
         - text
         - layout
         - structure
+  # Auto-registered by figma-audit on 2026-05-31 (sighted 2 times, first seen 2026-05-30)
+  auto_frame_27_110_82:
+    figmaNodeId: "110:82"
+    figmaNodeName: "Frame 27"
+    figmaNodePath: []
+    code: ../src/screens/FigmaFrameTracking.ts
+    targetType: screen
+    automation:
+      apply: report-only
+      audit: include
+      allowedClasses:
+        - token
+        - text
+        - layout
+        - structure
